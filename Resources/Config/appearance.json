@@ -1,0 +1,33 @@
+{
+  "appName": "GeraKLab",
+  "subtitle": "Лаборатория бесполезных исследований",
+
+  "theme": {
+    "background": "#08080C",
+    "surface": "#15151C",
+    "accent": "#FF4FA3",
+    "secondaryAccent": "#20E0D0",
+    "text": "#FFFFFF",
+    "secondaryText": "#A7A7B3"
+  },
+
+  "glass": {
+    "enabled": true,
+    "opacity": 0.72,
+    "blur": 20,
+    "cornerRadius": 24
+  },
+
+  "animation": {
+    "enabled": true,
+    "duration": 0.35
+  },
+
+  "haptics": {
+    "enabled": true
+  },
+
+  "sounds": {
+    "enabled": true
+  }
+}

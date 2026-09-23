@@ -1,0 +1,30 @@
+{
+  "version": 1,
+
+  "achievements": [
+    {
+      "id": "first_test",
+      "title": "Первое исследование",
+      "description": "Провести первое исследование",
+      "icon": "🧪"
+    },
+    {
+      "id": "lab_veteran",
+      "title": "Лабораторный ветеран",
+      "description": "Провести 25 исследований",
+      "icon": "🏆"
+    },
+    {
+      "id": "idiot_master",
+      "title": "Доктор долбоебологии",
+      "description": "Получить 10 результатов выше 90%",
+      "icon": "🤡"
+    },
+    {
+      "id": "chaos_master",
+      "title": "Повелитель хаоса",
+      "description": "Запустить режим «Хаос» 10 раз",
+      "icon": "💀"
+    }
+  ]
+}

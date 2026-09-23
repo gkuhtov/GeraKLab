@@ -1,0 +1,86 @@
+{
+  "version": 1,
+
+  "experiments": [
+    {
+      "id": "personality_scan",
+      "title": "Сканер личности",
+      "subtitle": "Определение уровня адекватности",
+      "icon": "🤡",
+      "type": "camera",
+      "enabled": true
+    },
+    {
+      "id": "lie_detector",
+      "title": "Детектор лжи",
+      "subtitle": "Проверка достоверности утверждения",
+      "icon": "🤥",
+      "type": "voice",
+      "enabled": true
+    },
+    {
+      "id": "money_scan",
+      "title": "Финансовый сканер",
+      "subtitle": "Исследование финансового состояния",
+      "icon": "💰",
+      "type": "random",
+      "enabled": true
+    },
+    {
+      "id": "brain_check",
+      "title": "Проверка мозга",
+      "subtitle": "Комплексное исследование мыслительной активности",
+      "icon": "🧠",
+      "type": "quiz",
+      "enabled": true
+    },
+    {
+      "id": "suspicion_detector",
+      "title": "Детектор подозрительности",
+      "subtitle": "Поиск подозрительных признаков",
+      "icon": "🕵️",
+      "type": "camera",
+      "enabled": true
+    },
+    {
+      "id": "red_button",
+      "title": "Красная кнопка",
+      "subtitle": "Не нажимать",
+      "icon": "🚨",
+      "type": "button",
+      "enabled": true
+    },
+    {
+      "id": "excuse_generator",
+      "title": "Генератор отмазок",
+      "subtitle": "Создание убедительных объяснений",
+      "icon": "🎭",
+      "type": "random",
+      "enabled": true
+    },
+    {
+      "id": "party_judge",
+      "title": "Судья компании",
+      "subtitle": "Определение виновного",
+      "icon": "⚖️",
+      "type": "party",
+      "enabled": true
+    },
+    {
+      "id": "decision_maker",
+      "title": "Решатель",
+      "subtitle": "Принятие важных и не очень решений",
+      "icon": "🎲",
+      "type": "random",
+      "enabled": true
+    },
+    {
+      "id": "chaos",
+      "title": "Хаос",
+      "subtitle": "Лаборатория сама решит, что с вами делать",
+      "icon": "💀",
+      "type": "chaos",
+      "enabled": true
+    }
+  ]
+}
