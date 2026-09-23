@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 struct AppConfig {
     let appearance: AppearanceConfig
@@ -94,4 +95,66 @@ struct ExperimentResultConfig: Codable, Hashable {
     let title: String
     let value: String
     let description: String
+}
+
+// MARK: - Theme
+
+struct LabTheme {
+
+    let background: Color
+    let surface: Color
+    let accent: Color
+    let secondaryAccent: Color
+    let text: Color
+    let secondaryText: Color
+
+    let glassOpacity: Double
+    let cornerRadius: CGFloat
+
+    init(_ appearance: AppearanceConfig) {
+        background = Color(hex: appearance.theme.background)
+        surface = Color(hex: appearance.theme.surface)
+        accent = Color(hex: appearance.theme.accent)
+        secondaryAccent = Color(hex: appearance.theme.secondaryAccent)
+        text = Color(hex: appearance.theme.text)
+        secondaryText = Color(hex: appearance.theme.secondaryText)
+
+        glassOpacity = appearance.glass.opacity
+        cornerRadius = CGFloat(appearance.glass.cornerRadius)
+    }
+}
+
+// MARK: - Color
+
+extension Color {
+
+    init(hex: String) {
+        let cleaned = hex
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "#", with: "")
+
+        var value: UInt64 = 0
+
+        Scanner(string: cleaned).scanHexInt64(&value)
+
+        switch cleaned.count {
+        case 6:
+            self.init(
+                red: Double((value >> 16) & 0xFF) / 255,
+                green: Double((value >> 8) & 0xFF) / 255,
+                blue: Double(value & 0xFF) / 255
+            )
+
+        case 8:
+            self.init(
+                red: Double((value >> 24) & 0xFF) / 255,
+                green: Double((value >> 16) & 0xFF) / 255,
+                blue: Double((value >> 8) & 0xFF) / 255,
+                opacity: Double(value & 0xFF) / 255
+            )
+
+        default:
+            self = .clear
+        }
+    }
 }
