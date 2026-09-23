@@ -1,0 +1,46 @@
+name: Build GeraKLab IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build archive
+        run: |
+          xcodebuild \
+            -project GeraKLab.xcodeproj \
+            -scheme GeraKLab \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/GeraKLab.xcarchive \
+            archive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Create IPA
+        run: |
+          mkdir -p build/Payload
+          cp -R build/GeraKLab.xcarchive/Products/Applications/GeraKLab.app build/Payload/
+          cd build
+          zip -r GeraKLab.ipa Payload
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: GeraKLab-IPA
+          path: build/GeraKLab.ipa
