@@ -21,14 +21,7 @@ targets:
       - path: Core
       - path: Models
       - path: Screens
-
-    resources:
-      - path: Resources/Config/appearance.json
-      - path: Resources/Config/experiments.json
-      - path: Resources/Config/home.json
-      - path: Resources/Config/results.json
-      - path: Resources/Config/texts.json
-      - path: Resources/Config/achievements.json
+      - path: Resources
 
     settings:
       base:
