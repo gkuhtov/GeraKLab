@@ -21,45 +21,36 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Loading
-
     private var loadingView: some View {
         ZStack {
             Color(hex: "#08080C")
                 .ignoresSafeArea()
 
-            VStack(spacing: 16) {
+            VStack(spacing: 12) {
                 ProgressView()
                     .tint(Color(hex: "#20E0D0"))
-                    .scaleEffect(1.15)
 
                 Text("ЗАГРУЗКА ЛАБОРАТОРИИ")
                     .font(.system(
-                        size: 12,
+                        size: 11,
                         weight: .semibold,
                         design: .rounded
                     ))
-                    .tracking(1.2)
-                    .foregroundStyle(
-                        Color(hex: "#A7A7B3")
-                    )
+                    .tracking(1)
+                    .foregroundStyle(Color(hex: "#A7A7B3"))
             }
         }
     }
-
-    // MARK: - Error
 
     private func errorView(_ error: String) -> some View {
         ZStack {
             Color(hex: "#08080C")
                 .ignoresSafeArea()
 
-            VStack(spacing: 16) {
+            VStack(spacing: 14) {
                 Image(systemName: "exclamationmark.triangle")
-                    .font(.system(size: 36))
-                    .foregroundStyle(
-                        Color(hex: "#FF4FA3")
-                    )
+                    .font(.system(size: 30))
+                    .foregroundStyle(Color(hex: "#FF4FA3"))
 
                 Text("ОШИБКА ЛАБОРАТОРИИ")
                     .font(.headline)
@@ -67,16 +58,12 @@ struct HomeView: View {
 
                 Text(error)
                     .font(.subheadline)
-                    .foregroundStyle(
-                        Color(hex: "#A7A7B3")
-                    )
+                    .foregroundStyle(Color(hex: "#A7A7B3"))
                     .multilineTextAlignment(.center)
             }
-            .padding(28)
+            .padding(24)
         }
     }
-
-    // MARK: - Content
 
     private func content(_ config: AppConfig) -> some View {
         let theme = LabTheme(config.appearance)
@@ -87,7 +74,7 @@ struct HomeView: View {
                     .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
+                    VStack(alignment: .leading, spacing: 20) {
 
                         header(config, theme: theme)
 
@@ -98,51 +85,41 @@ struct HomeView: View {
                             theme: theme
                         )
                     }
-                    .padding(.horizontal, 18)
-                    .padding(.top, 18)
-                    .padding(.bottom, 28)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+                    .padding(.bottom, 24)
                 }
                 .scrollIndicators(.hidden)
             }
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(
-                theme.background,
-                for: .navigationBar
-            )
-            .toolbarBackground(
-                .visible,
-                for: .navigationBar
-            )
         }
         .tint(theme.accent)
     }
-
-    // MARK: - Header
 
     private func header(
         _ config: AppConfig,
         theme: LabTheme
     ) -> some View {
-        VStack(alignment: .leading, spacing: 7) {
+        VStack(alignment: .leading, spacing: 4) {
 
             Text(config.home.title)
                 .font(.system(
-                    size: 34,
+                    size: 30,
                     weight: .bold,
                     design: .rounded
                 ))
                 .foregroundStyle(theme.text)
-                .lineLimit(2)
+                .lineLimit(1)
                 .minimumScaleFactor(0.8)
 
             Text(config.home.subtitle)
                 .font(.system(
-                    size: 15,
+                    size: 14,
                     weight: .regular,
                     design: .rounded
                 ))
                 .foregroundStyle(theme.secondaryText)
-                .lineLimit(2)
+                .lineLimit(1)
         }
         .frame(
             maxWidth: .infinity,
@@ -150,57 +127,50 @@ struct HomeView: View {
         )
     }
 
-    // MARK: - Status
-
     private func statusCard(
         _ config: AppConfig,
         theme: LabTheme
     ) -> some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 12) {
 
             ZStack {
                 Circle()
-                    .fill(
-                        theme.secondaryAccent
-                            .opacity(0.14)
-                    )
-                    .frame(width: 44, height: 44)
+                    .fill(theme.secondaryAccent.opacity(0.12))
+                    .frame(width: 38, height: 38)
 
                 Circle()
                     .fill(theme.secondaryAccent)
-                    .frame(width: 9, height: 9)
-                    .shadow(
-                        color: theme.secondaryAccent
-                            .opacity(0.7),
-                        radius: 7
-                    )
+                    .frame(width: 7, height: 7)
             }
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 2) {
 
                 Text(config.home.status.title)
                     .font(.system(
-                        size: 12,
+                        size: 11,
                         weight: .bold,
                         design: .rounded
                     ))
-                    .tracking(0.6)
+                    .tracking(0.5)
                     .foregroundStyle(theme.secondaryAccent)
 
                 Text(config.home.status.description)
                     .font(.system(
-                        size: 14,
+                        size: 13,
                         weight: .regular,
                         design: .rounded
                     ))
                     .foregroundStyle(theme.secondaryText)
-                    .lineLimit(2)
+                    .lineLimit(1)
             }
 
             Spacer(minLength: 0)
         }
-        .padding(16)
-        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 14)
+        .frame(
+            maxWidth: .infinity,
+            height: 64
+        )
         .background(
             RoundedRectangle(
                 cornerRadius: theme.cornerRadius,
@@ -214,19 +184,17 @@ struct HomeView: View {
                 style: .continuous
             )
             .stroke(
-                theme.secondaryAccent.opacity(0.14),
+                theme.secondaryAccent.opacity(0.12),
                 lineWidth: 1
             )
         )
     }
 
-    // MARK: - Experiments
-
     private func experimentsSection(
         _ config: AppConfig,
         theme: LabTheme
     ) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
 
             Text(
                 config.home.sections.first(
@@ -235,15 +203,14 @@ struct HomeView: View {
                 ?? "ДОСТУПНЫЕ ИССЛЕДОВАНИЯ"
             )
             .font(.system(
-                size: 12,
+                size: 11,
                 weight: .bold,
                 design: .rounded
             ))
             .tracking(0.8)
             .foregroundStyle(theme.secondaryText)
 
-            LazyVStack(spacing: 12) {
-
+            VStack(spacing: 8) {
                 ForEach(
                     config.experiments.filter(\.enabled)
                 ) { experiment in
@@ -268,59 +235,56 @@ struct HomeView: View {
         _ experiment: Experiment,
         theme: LabTheme
     ) -> some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 12) {
 
             ZStack {
                 RoundedRectangle(
-                    cornerRadius: 14,
+                    cornerRadius: 12,
                     style: .continuous
                 )
-                .fill(
-                    theme.accent.opacity(0.12)
-                )
-                .frame(width: 50, height: 50)
+                .fill(theme.accent.opacity(0.10))
+                .frame(width: 42, height: 42)
 
                 Text(experiment.icon)
-                    .font(.system(size: 25))
+                    .font(.system(size: 22))
             }
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 2) {
 
                 Text(experiment.title)
                     .font(.system(
-                        size: 16,
+                        size: 15,
                         weight: .semibold,
                         design: .rounded
                     ))
                     .foregroundStyle(theme.text)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.85)
+                    .lineLimit(1)
 
                 Text(experiment.subtitle)
                     .font(.system(
-                        size: 13,
+                        size: 12,
                         weight: .regular,
                         design: .rounded
                     ))
                     .foregroundStyle(theme.secondaryText)
-                    .lineLimit(2)
+                    .lineLimit(1)
             }
 
-            Spacer(minLength: 8)
+            Spacer(minLength: 4)
 
             Image(systemName: "chevron.right")
                 .font(.system(
-                    size: 12,
+                    size: 11,
                     weight: .bold
                 ))
                 .foregroundStyle(
                     theme.accent.opacity(0.8)
                 )
         }
-        .padding(14)
+        .padding(.horizontal, 12)
         .frame(
             maxWidth: .infinity,
-            minHeight: 78
+            height: 66
         )
         .background(
             RoundedRectangle(
@@ -340,9 +304,4 @@ struct HomeView: View {
             )
         )
     }
-}
-
-#Preview {
-    HomeView()
-        .environmentObject(LabEngine())
 }
