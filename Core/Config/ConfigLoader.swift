@@ -34,14 +34,34 @@ final class ConfigLoader {
         fileName: String
     ) throws -> T {
 
-        guard let url = bundle.url(
+        let url: URL?
+
+        if let rootURL = bundle.url(
             forResource: fileName,
             withExtension: "json"
-        ) else {
+        ) {
+            url = rootURL
+        } else if let configURL = bundle.url(
+            forResource: fileName,
+            withExtension: "json",
+            subdirectory: "Config"
+        ) {
+            url = configURL
+        } else {
             throw ConfigLoaderError.fileNotFound(fileName)
         }
 
-        let data = try Data(contentsOf: url)
+        guard let url else {
+            throw ConfigLoaderError.fileNotFound(fileName)
+        }
+
+        let data: Data
+
+        do {
+            data = try Data(contentsOf: url)
+        } catch {
+            throw ConfigLoaderError.invalidData(fileName)
+        }
 
         guard !data.isEmpty else {
             throw ConfigLoaderError.invalidData(fileName)
@@ -50,7 +70,10 @@ final class ConfigLoader {
         do {
             return try JSONDecoder().decode(T.self, from: data)
         } catch {
-            throw ConfigLoaderError.decodingFailed(fileName, error)
+            throw ConfigLoaderError.decodingFailed(
+                fileName,
+                error
+            )
         }
     }
 
