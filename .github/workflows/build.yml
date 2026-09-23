@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -79,7 +79,7 @@ jobs:
           unzip -l build/GeraKLab.ipa | grep -E '\.json$' || true
 
       - name: Upload IPA
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: GeraKLab-IPA
           path: build/GeraKLab.ipa
