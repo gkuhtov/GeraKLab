@@ -10,26 +10,33 @@ struct ExperimentView: View {
     @State private var isRunning = false
 
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 0) {
 
-            Spacer()
+            ScrollView {
+                VStack(spacing: 24) {
 
-            Text(experiment.icon)
-                .font(.system(size: 72))
+                    Text(experiment.icon)
+                        .font(.system(size: 72))
 
-            Text(experiment.title)
-                .font(.largeTitle.bold())
-                .multilineTextAlignment(.center)
+                    Text(experiment.title)
+                        .font(.largeTitle.bold())
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
 
-            Text(experiment.subtitle)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+                    Text(experiment.subtitle)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
 
-            if let result {
-                ResultView(result: result)
+                    if let result {
+                        ResultView(result: result)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal)
+                .padding(.top, 24)
+                .padding(.bottom, 20)
             }
-
-            Spacer()
 
             Button {
                 runExperiment()
@@ -41,12 +48,15 @@ struct ExperimentView: View {
                 )
                 .font(.headline)
                 .frame(maxWidth: .infinity)
-                .padding()
+                .padding(.vertical, 14)
             }
             .buttonStyle(.borderedProminent)
             .disabled(isRunning)
+            .padding(.horizontal)
+            .padding(.top, 10)
+            .padding(.bottom, 8)
         }
-        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle(experiment.title)
         .navigationBarTitleDisplayMode(.inline)
     }
