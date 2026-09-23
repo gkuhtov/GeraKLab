@@ -27,6 +27,9 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.gkuhtov.geraklab
         PRODUCT_NAME: GeraKLab
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
 
     info:
       path: App/Info.plist
