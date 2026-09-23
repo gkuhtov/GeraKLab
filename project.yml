@@ -23,7 +23,8 @@ targets:
       - path: Screens
 
     resources:
-      - path: Resources
+      - path: Resources/Config
+        type: folder
 
     settings:
       base:
