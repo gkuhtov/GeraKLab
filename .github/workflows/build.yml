@@ -1,6 +1,9 @@
 name: Build GeraKLab IPA
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
