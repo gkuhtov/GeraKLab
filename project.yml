@@ -1,0 +1,34 @@
+name: GeraKLab
+
+options:
+  bundleIdPrefix: com.gkuhtov
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: 5.0
+    TARGETED_DEVICE_FAMILY: "1,2"
+
+targets:
+  GeraKLab:
+    type: application
+    platform: iOS
+
+    sources:
+      - path: App
+      - path: Core
+      - path: Models
+      - path: Screens
+
+    resources:
+      - path: Resources
+
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.gkuhtov.geraklab
+        PRODUCT_NAME: GeraKLab
+
+    info:
+      path: App/Info.plist
