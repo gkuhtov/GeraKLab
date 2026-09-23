@@ -167,10 +167,8 @@ struct HomeView: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 14)
-        .frame(
-            maxWidth: .infinity,
-            height: 64
-        )
+        .frame(maxWidth: .infinity)
+        .frame(height: 64)
         .background(
             RoundedRectangle(
                 cornerRadius: theme.cornerRadius,
@@ -282,10 +280,8 @@ struct HomeView: View {
                 )
         }
         .padding(.horizontal, 12)
-        .frame(
-            maxWidth: .infinity,
-            height: 66
-        )
+        .frame(maxWidth: .infinity)
+        .frame(height: 66)
         .background(
             RoundedRectangle(
                 cornerRadius: theme.cornerRadius,
