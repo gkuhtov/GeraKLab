@@ -67,6 +67,44 @@ struct HomeView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    private func debugScreenInfo() -> some View {
+        GeometryReader { proxy in
+            VStack(alignment: .leading, spacing: 6) {
+                Text("SCREEN DEBUG")
+                    .font(.headline)
+
+                Text("SwiftUI size: \\(Int(proxy.size.width)) × \\(Int(proxy.size.height))")
+
+                Text("UIScreen: \\(Int(UIScreen.main.bounds.width)) × \\(Int(UIScreen.main.bounds.height))")
+
+                Text("Native: \\(Int(UIScreen.main.nativeBounds.width)) × \\(Int(UIScreen.main.nativeBounds.height))")
+
+                Text("Scale: \\(UIScreen.main.scale)")
+
+                if let scene = UIApplication.shared.connectedScenes
+                    .compactMap({ $0 as? UIWindowScene })
+                    .first,
+                   let window = scene.windows.first {
+
+                    Text("Window: \\(Int(window.bounds.width)) × \\(Int(window.bounds.height))")
+
+                    Text(
+                        "Safe area: L\\(Int(window.safeAreaInsets.left)) " +
+                        "T\\(Int(window.safeAreaInsets.top)) " +
+                        "R\\(Int(window.safeAreaInsets.right)) " +
+                        "B\\(Int(window.safeAreaInsets.bottom))"
+                    )
+                }
+            }
+            .font(.system(size: 11, design: .monospaced))
+            .foregroundStyle(.white)
+            .padding(12)
+            .background(.red.opacity(0.85))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .frame(height: 180)
+    }
+
     private func content(_ config: AppConfig) -> some View {
         let theme = LabTheme(config.appearance)
 
@@ -77,6 +115,8 @@ struct HomeView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
+
+                        debugScreenInfo()
 
                         header(
                             config,
