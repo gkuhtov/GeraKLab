@@ -40,6 +40,7 @@ struct HomeView: View {
                     .foregroundStyle(Color(hex: "#A7A7B3"))
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func errorView(_ error: String) -> some View {
@@ -63,6 +64,7 @@ struct HomeView: View {
             }
             .padding(24)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func content(_ config: AppConfig) -> some View {
@@ -76,23 +78,45 @@ struct HomeView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
 
-                        header(config, theme: theme)
+                        header(
+                            config,
+                            theme: theme
+                        )
 
-                        statusCard(config, theme: theme)
+                        statusCard(
+                            config,
+                            theme: theme
+                        )
 
                         experimentsSection(
                             config,
                             theme: theme
                         )
                     }
+                    .frame(
+                        maxWidth: .infinity,
+                        alignment: .leading
+                    )
                     .padding(.horizontal, 16)
                     .padding(.top, 12)
                     .padding(.bottom, 24)
                 }
                 .scrollIndicators(.hidden)
+                .frame(
+                    maxWidth: .infinity,
+                    maxHeight: .infinity
+                )
             }
+            .frame(
+                maxWidth: .infinity,
+                maxHeight: .infinity
+            )
             .navigationBarTitleDisplayMode(.inline)
         }
+        .frame(
+            maxWidth: .infinity,
+            maxHeight: .infinity
+        )
         .tint(theme.accent)
     }
 
@@ -135,15 +159,26 @@ struct HomeView: View {
 
             ZStack {
                 Circle()
-                    .fill(theme.secondaryAccent.opacity(0.12))
-                    .frame(width: 38, height: 38)
+                    .fill(
+                        theme.secondaryAccent.opacity(0.12)
+                    )
+                    .frame(
+                        width: 38,
+                        height: 38
+                    )
 
                 Circle()
                     .fill(theme.secondaryAccent)
-                    .frame(width: 7, height: 7)
+                    .frame(
+                        width: 7,
+                        height: 7
+                    )
             }
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(
+                alignment: .leading,
+                spacing: 2
+            ) {
 
                 Text(config.home.status.title)
                     .font(.system(
@@ -152,7 +187,9 @@ struct HomeView: View {
                         design: .rounded
                     ))
                     .tracking(0.5)
-                    .foregroundStyle(theme.secondaryAccent)
+                    .foregroundStyle(
+                        theme.secondaryAccent
+                    )
 
                 Text(config.home.status.description)
                     .font(.system(
@@ -174,7 +211,11 @@ struct HomeView: View {
                 cornerRadius: theme.cornerRadius,
                 style: .continuous
             )
-            .fill(theme.surface.opacity(theme.glassOpacity))
+            .fill(
+                theme.surface.opacity(
+                    theme.glassOpacity
+                )
+            )
         )
         .overlay(
             RoundedRectangle(
@@ -192,11 +233,16 @@ struct HomeView: View {
         _ config: AppConfig,
         theme: LabTheme
     ) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(
+            alignment: .leading,
+            spacing: 10
+        ) {
 
             Text(
                 config.home.sections.first(
-                    where: { $0.id == "experiments" }
+                    where: {
+                        $0.id == "experiments"
+                    }
                 )?.title
                 ?? "ДОСТУПНЫЕ ИССЛЕДОВАНИЯ"
             )
@@ -240,14 +286,22 @@ struct HomeView: View {
                     cornerRadius: 12,
                     style: .continuous
                 )
-                .fill(theme.accent.opacity(0.10))
-                .frame(width: 42, height: 42)
+                .fill(
+                    theme.accent.opacity(0.10)
+                )
+                .frame(
+                    width: 42,
+                    height: 42
+                )
 
                 Text(experiment.icon)
                     .font(.system(size: 22))
             }
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(
+                alignment: .leading,
+                spacing: 2
+            ) {
 
                 Text(experiment.title)
                     .font(.system(
@@ -287,7 +341,11 @@ struct HomeView: View {
                 cornerRadius: theme.cornerRadius,
                 style: .continuous
             )
-            .fill(theme.surface.opacity(theme.glassOpacity))
+            .fill(
+                theme.surface.opacity(
+                    theme.glassOpacity
+                )
+            )
         )
         .overlay(
             RoundedRectangle(

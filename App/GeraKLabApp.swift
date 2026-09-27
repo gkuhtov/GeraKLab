@@ -7,13 +7,8 @@ struct GeraKLabApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ZStack {
-                Color(hex: "#08080C")
-                    .ignoresSafeArea()
-
-                HomeView()
-                    .environmentObject(labEngine)
-            }
+            HomeView()
+                .environmentObject(labEngine)
         }
     }
 }
