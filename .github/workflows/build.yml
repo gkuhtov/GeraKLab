@@ -38,6 +38,19 @@ jobs:
           grep -n "appearance.json\|experiments.json\|home.json\|results.json\|texts.json\|achievements.json" \
             GeraKLab.xcodeproj/project.pbxproj || true
 
+      - name: Inspect generated app configuration
+        run: |
+          echo "=== GENERATED PROJECT CONFIGURATION ==="
+          grep -nE "INFOPLIST_FILE|GENERATE_INFOPLIST_FILE|UILaunchScreen|UISupportedInterfaceOrientations|UIRequiresFullScreen|TARGETED_DEVICE_FAMILY"             GeraKLab.xcodeproj/project.pbxproj || true
+
+          echo
+          echo "=== XCODE BUILD SETTINGS ==="
+          xcodebuild             -project GeraKLab.xcodeproj             -scheme GeraKLab             -showBuildSettings             | grep -E "INFOPLIST_FILE|GENERATE_INFOPLIST_FILE|PRODUCT_BUNDLE_IDENTIFIER|TARGETED_DEVICE_FAMILY|SUPPORTED_PLATFORMS|SDKROOT"
+
+          echo
+          echo "=== SOURCE INFO.PLIST ==="
+          cat App/Info.plist
+
       - name: Build archive
         run: |
           xcodebuild \
