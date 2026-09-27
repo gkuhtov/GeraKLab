@@ -69,40 +69,32 @@ struct HomeView: View {
 
     private func debugScreenInfo() -> some View {
         GeometryReader { proxy in
-            VStack(alignment: .leading, spacing: 6) {
-                Text("SCREEN DEBUG")
-                    .font(.headline)
-
-                Text("SwiftUI size: \\(Int(proxy.size.width)) × \\(Int(proxy.size.height))")
-
-                Text("UIScreen: \\(Int(UIScreen.main.bounds.width)) × \\(Int(UIScreen.main.bounds.height))")
-
-                Text("Native: \\(Int(UIScreen.main.nativeBounds.width)) × \\(Int(UIScreen.main.nativeBounds.height))")
-
-                Text("Scale: \\(UIScreen.main.scale)")
+            VStack(alignment: .leading, spacing: 2) {
+                Text("SWIFTUI: \\(Int(proxy.size.width))×\\(Int(proxy.size.height))")
+                Text("SCREEN: \\(Int(UIScreen.main.bounds.width))×\\(Int(UIScreen.main.bounds.height))")
+                Text("NATIVE: \\(Int(UIScreen.main.nativeBounds.width))×\\(Int(UIScreen.main.nativeBounds.height))")
+                Text("SCALE: \\(UIScreen.main.scale)")
 
                 if let scene = UIApplication.shared.connectedScenes
                     .compactMap({ $0 as? UIWindowScene })
                     .first,
                    let window = scene.windows.first {
 
-                    Text("Window: \\(Int(window.bounds.width)) × \\(Int(window.bounds.height))")
+                    Text("WINDOW: \\(Int(window.bounds.width))×\\(Int(window.bounds.height))")
 
                     Text(
-                        "Safe area: L\\(Int(window.safeAreaInsets.left)) " +
-                        "T\\(Int(window.safeAreaInsets.top)) " +
-                        "R\\(Int(window.safeAreaInsets.right)) " +
-                        "B\\(Int(window.safeAreaInsets.bottom))"
+                        "SAFE: \\(Int(window.safeAreaInsets.left)),\\(Int(window.safeAreaInsets.top)),\\(Int(window.safeAreaInsets.right)),\\(Int(window.safeAreaInsets.bottom))"
                     )
                 }
             }
-            .font(.system(size: 11, design: .monospaced))
+            .font(.system(size: 9, design: .monospaced))
             .foregroundStyle(.white)
-            .padding(12)
+            .padding(8)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(.red.opacity(0.85))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
         }
-        .frame(height: 180)
+        .frame(height: 90)
     }
 
     private func content(_ config: AppConfig) -> some View {
