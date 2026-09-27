@@ -63,6 +63,31 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO
 
+      - name: Inspect final Info.plist
+        run: |
+          APP="build/GeraKLab.xcarchive/Products/Applications/GeraKLab.app"
+
+          echo "=== FINAL APP INFO.PLIST ==="
+          /usr/libexec/PlistBuddy -c "Print" "$APP/Info.plist"
+
+          echo
+          echo "=== SCREEN / WINDOW KEYS ==="
+          echo "--- UILaunchScreen ---"
+          /usr/libexec/PlistBuddy -c "Print :UILaunchScreen" "$APP/Info.plist" || true
+
+          echo "--- UISupportedInterfaceOrientations ---"
+          /usr/libexec/PlistBuddy -c "Print :UISupportedInterfaceOrientations" "$APP/Info.plist" || true
+
+          echo "--- UIRequiresFullScreen ---"
+          /usr/libexec/PlistBuddy -c "Print :UIRequiresFullScreen" "$APP/Info.plist" || true
+
+          echo "--- UIDeviceFamily ---"
+          /usr/libexec/PlistBuddy -c "Print :UIDeviceFamily" "$APP/Info.plist" || true
+
+          echo
+          echo "=== APP BINARY ==="
+          file "$APP/GeraKLab"
+
       - name: Inspect built app
         run: |
           APP="build/GeraKLab.xcarchive/Products/Applications/GeraKLab.app"
