@@ -7,17 +7,13 @@ public struct RootView: View {
 
     public var body: some View {
         ZStack {
-            // Живой органический фон
             LabBackgroundView()
                 .ignoresSafeArea()
 
-            // Контентная область
             Group {
                 switch selectedTab {
                 case .home:
-                    Text("🧪 Главный экран GeraKLab")
-                        .font(.title2.bold())
-                        .foregroundColor(.white)
+                    HomeView()
                 case .lab:
                     Text("🧪 Каталог и Верстак Опытов")
                         .font(.title2.bold())
@@ -38,7 +34,6 @@ public struct RootView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Нижняя плавающая Liquid Glass панель
             VStack {
                 Spacer()
                 CustomLiquidTabBar(selectedTab: $selectedTab)
