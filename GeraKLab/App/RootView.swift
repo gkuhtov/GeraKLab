@@ -16,9 +16,7 @@ public struct RootView: View {
                 case .home:
                     HomeView()
                 case .lab:
-                    Text("🧪 Каталог и Верстак Опытов")
-                        .font(.title2.bold())
-                        .foregroundColor(.white)
+                    LabView()
                 case .random:
                     Color.clear
                 case .favorites:
@@ -33,7 +31,6 @@ public struct RootView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Нижняя панель
             VStack {
                 Spacer()
                 CustomLiquidTabBar(
