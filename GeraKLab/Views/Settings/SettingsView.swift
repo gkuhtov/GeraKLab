@@ -4,6 +4,7 @@ public struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     private let personality = PersonalityEngine.shared
     private let museum = MuseumManager.shared
+    private let stressRunner = StressTestRunner.shared
 
     // Тумблеры поведения
     @State private var safeForMomMode: Bool = false
@@ -16,6 +17,7 @@ public struct SettingsView: View {
     // Модальные экраны
     @State private var showMuseum: Bool = false
     @State private var showPrivateLab: Bool = false
+    @State private var showStressAlert: Bool = false
 
     private let autonomyLevels = ["Осторожный", "Обычный", "Безумный"]
 
@@ -49,34 +51,39 @@ public struct SettingsView: View {
                     }
                     .padding(.top, 24)
 
-                    // 🧑‍🔬 Профиль исследователя
+                    // 🧑‍🔬 Профиль
                     profileSection
 
-                    // 🎭 Поведение персонажа и мат
+                    // 🎭 Поведение
                     behaviorSection
 
-                    // 🎨 Оформление Liquid Glass
+                    // 🎨 Оформление
                     appearanceSection
 
-                    // 🏛️ Музей катастроф (Кликабельный)
+                    // 🏛️ Музей катастроф
                     museumSection
 
-                    // 🔐 Датчики и разрешения iOS
+                    // 🔐 Датчики
                     sensorsSection
 
-                    // 🩺 Интерактивная диагностика железа
+                    // 🩺 Интерактивная диагностика
                     diagnosticsSection
 
                     // 📦 Конфигурация и сброс
                     configAndResetSection
 
-                    // 🔒 Скрытый протокол (секретная плашка)
+                    // 🔒 Скрытый протокол
                     secretProtocolTrigger
 
                     Spacer().frame(height: 50)
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 20)
+            }
+
+            // Оверлей активной прожарки
+            if stressRunner.isRunning {
+                stressOverlay
             }
         }
         .sheet(isPresented: $showMuseum) {
@@ -200,7 +207,7 @@ public struct SettingsView: View {
         .liquidGlass(cornerRadius: 22, borderOpacity: 0.25)
     }
 
-    // MARK: - 🏛️ Музей катастроф (Кликабельный)
+    // MARK: - 🏛️ Музей катастроф
     private var museumSection: some View {
         Button {
             personality.say("Пойдём поглядим на твои подвиги вандализма.", emotion: .mocking)
@@ -231,7 +238,7 @@ public struct SettingsView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - 🔐 Датчики и железо
+    // MARK: - 🔐 Датчики
     private var sensorsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("🔐 РЕАЛЬНЫЕ ДАТЧИКИ IOS")
@@ -263,7 +270,7 @@ public struct SettingsView: View {
     // MARK: - 🩺 Прожарка железа
     private var diagnosticsSection: some View {
         Button {
-            personality.say("Запускаю прожарку систем! Лови подачу!", emotion: .panic)
+            stressRunner.startStressTest {}
         } label: {
             HStack {
                 Spacer()
@@ -276,6 +283,49 @@ public struct SettingsView: View {
             .padding(.vertical, 14)
             .background(LabTheme.hazardOrange)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        }
+    }
+
+    // MARK: - Оверлей стресс-теста
+    private var stressOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.85).ignoresSafeArea()
+            VStack(spacing: 20) {
+                Text("🔥")
+                    .font(.system(size: 64))
+
+                Text("ПРОЖАРКА СИСТЕМ")
+                    .font(.system(size: 20, weight: .black, design: .monospaced))
+                    .foregroundColor(LabTheme.hazardOrange)
+
+                Text(stressRunner.currentStage)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+
+                // Прогресс-бар
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color.white.opacity(0.1))
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(
+                                LinearGradient(
+                                    colors: [LabTheme.hazardOrange, LabTheme.alertRed],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(width: geo.size.width * CGFloat(stressRunner.progress))
+                    }
+                }
+                .frame(height: 12)
+                .padding(.horizontal, 40)
+            }
+            .padding(24)
+            .liquidGlass(cornerRadius: 24, borderOpacity: 0.4)
+            .padding(.horizontal, 24)
         }
     }
 
