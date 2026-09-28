@@ -23,9 +23,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>GeraKLab требует доступ к микрофону, чтобы замерять децибелы твоих криков и разгонять процессор звуковыми волнами.</string>
+	<string>GeraKLab требует доступ к микрофону для замера акустических перегрузок и стресс-тестирования звукового тракта.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>GeraKLab использует камеру и фотовспышку для стробоскопа, детектора пульса и экстремальных тестов матрицы.</string>
+	<string>GeraKLab использует камеру и фотовспышку для фотоплетизмографии и высокочастотного стресс-теста модуля.</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>arm64</string>

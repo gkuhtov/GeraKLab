@@ -1,6 +1,8 @@
 import SwiftUI
 
 public struct RootView: View {
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
+
     @State private var selectedTab: TabItem = .home
     @State private var showRandomChaos: Bool = false
     @State private var activeChaosExperiment: ExperimentItem?
@@ -8,6 +10,16 @@ public struct RootView: View {
     public init() {}
 
     public var body: some View {
+        Group {
+            if !hasCompletedOnboarding {
+                OnboardingView(isCompleted: $hasCompletedOnboarding)
+            } else {
+                mainLabInterface
+            }
+        }
+    }
+
+    private var mainLabInterface: some View {
         ZStack {
             LabBackgroundView()
                 .ignoresSafeArea()
