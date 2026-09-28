@@ -8,41 +8,21 @@ public struct DisasterLogItem: Identifiable {
     public let damageReport: String
     public let professorVerdict: String
     public let severityColor: Color
+
+    public init(id: String, title: String, timestamp: String, emoji: String, damageReport: String, professorVerdict: String, severityColor: Color) {
+        self.id = id
+        self.title = title
+        self.timestamp = timestamp
+        self.emoji = emoji
+        self.damageReport = damageReport
+        self.professorVerdict = professorVerdict
+        self.severityColor = severityColor
+    }
 }
 
 public struct HistoryView: View {
     private let personality = PersonalityEngine.shared
-
-    @State private var labStupidityScore: Int = 94
-    @State private var logs: [DisasterLogItem] = [
-        DisasterLogItem(
-            id: "log_1",
-            title: "Аварийный разгон через микрофон",
-            timestamp: "Сегодня, 04:18",
-            emoji: "🎙️",
-            damageReport: "Микрофон перегружен на 108 дБ",
-            professorVerdict: "Орал так, будто тебя черти дерут. Динамик чуть не выплюнуло.",
-            severityColor: LabTheme.alertRed
-        ),
-        DisasterLogItem(
-            id: "log_2",
-            title: "Сейсмо-разнос гироскопа",
-            timestamp: "Вчера, 23:45",
-            emoji: "⚡",
-            damageReport: "Taptic Engine перегрелся на 42%",
-            professorVerdict: "Тряс телефон с такой дурью, что датчик движения чуть не вышел из чата.",
-            severityColor: LabTheme.hazardOrange
-        ),
-        DisasterLogItem(
-            id: "log_3",
-            title: "Слеповой стробоскоп",
-            timestamp: "Вчера, 19:12",
-            emoji: "🔦",
-            damageReport: "Вспышка: 120 циклов за 5 сек",
-            professorVerdict: "Сетчатку себе выжег, гений? Зато тест пройден.",
-            severityColor: LabTheme.cyanBeam
-        )
-    ]
+    private let history = HistoryManager.shared
 
     public init() {}
 
@@ -64,8 +44,7 @@ public struct HistoryView: View {
                     Spacer()
 
                     Button {
-                        logs.removeAll()
-                        labStupidityScore = 0
+                        history.clearAll()
                         personality.say("Стёр историю? Думаешь, я забыл, как ты тут позорился? Хуй там!", emotion: .aggressive)
                     } label: {
                         Text("СМЫТЬ ГРЕХИ")
@@ -89,7 +68,7 @@ public struct HistoryView: View {
                     .tracking(1.5)
 
                 // Лента катастроф
-                if logs.isEmpty {
+                if history.logs.isEmpty {
                     VStack(spacing: 8) {
                         Text("📭")
                             .font(.system(size: 40))
@@ -105,7 +84,7 @@ public struct HistoryView: View {
                     .liquidGlass(cornerRadius: 22, borderOpacity: 0.2)
                 } else {
                     VStack(spacing: 14) {
-                        ForEach(logs) { log in
+                        ForEach(history.logs) { log in
                             disasterCard(for: log)
                         }
                     }
@@ -125,21 +104,19 @@ public struct HistoryView: View {
                     .font(.system(size: 10, weight: .black, design: .monospaced))
                     .foregroundColor(LabTheme.hazardOrange)
                 Spacer()
-                Text("УРОВЕНЬ ДЕБИЛИЗМА: \(labStupidityScore)%")
+                Text("УРОВЕНЬ ДЕБИЛИЗМА: \(history.labStupidityScore)%")
                     .font(.system(size: 11, weight: .heavy, design: .monospaced))
-                    .foregroundColor(labStupidityScore > 80 ? LabTheme.alertRed : LabTheme.toxicGreen)
+                    .foregroundColor(history.labStupidityScore > 80 ? LabTheme.alertRed : LabTheme.toxicGreen)
             }
 
             // Корпус телефона с датчиками
             HStack(spacing: 16) {
-                // Визуальный индикатор
                 ZStack {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .stroke(Color.white.opacity(0.3), lineWidth: 2)
                         .frame(width: 70, height: 110)
                         .background(Color.black.opacity(0.5))
 
-                    // "Трещина" на стекле
                     Path { path in
                         path.move(to: CGPoint(x: 10, y: 15))
                         path.addLine(to: CGPoint(x: 45, y: 55))
@@ -152,7 +129,6 @@ public struct HistoryView: View {
                         .font(.system(size: 22))
                 }
 
-                // Статусы перегрузок датчиков
                 VStack(alignment: .leading, spacing: 8) {
                     sensorStatusRow(name: "Микрофон", status: "Критический износ", color: LabTheme.alertRed)
                     sensorStatusRow(name: "Taptic Engine", status: "Устал вибрировать", color: LabTheme.hazardOrange)
@@ -214,7 +190,6 @@ public struct HistoryView: View {
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(log.severityColor)
 
-            // Цитата профессора
             HStack(alignment: .top, spacing: 6) {
                 Text("🧑‍🔬")
                     .font(.system(size: 12))

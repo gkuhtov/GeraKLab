@@ -6,6 +6,7 @@ public struct ExperimentExecutionView: View {
 
     private let sensor = SensorEngine.shared
     private let personality = PersonalityEngine.shared
+    private let history = HistoryManager.shared
 
     @State private var timeRemaining: Int = 7
     @State private var timerActive: Bool = false
@@ -104,7 +105,7 @@ public struct ExperimentExecutionView: View {
                             Text("💥 ЭКСПЕРИМЕНТ ОКОНЧЕН!")
                                 .font(.system(size: 18, weight: .black))
                                 .foregroundColor(LabTheme.hazardOrange)
-                            Text("Пиковый шум: \(Int(peakDecibels)) дБ")
+                            Text("Пиковый шум: \(Int(peakDecibels)) дБ • Записано в катастрофы")
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundColor(.white.opacity(0.7))
                         }
@@ -134,7 +135,6 @@ public struct ExperimentExecutionView: View {
 
         personality.say("Эксперимент запущен! Ну-ка покажи, на что способны твои связки!", emotion: .aggressive)
 
-        // Старт замера микрофона
         sensor.startAudioMetering { peak in
             if peak > peakDecibels {
                 peakDecibels = peak
@@ -142,7 +142,6 @@ public struct ExperimentExecutionView: View {
             sensor.triggerClick()
         }
 
-        // Таймер обратного отсчета
         Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
             if timeRemaining > 1 {
                 timeRemaining -= 1
@@ -161,6 +160,14 @@ public struct ExperimentExecutionView: View {
         timerActive = false
         sensor.stopAudioMetering()
         sensor.triggerExplosionHaptics()
+
+        // Запись в журнал истории
+        history.recordDisaster(
+            title: experiment.title,
+            emoji: experiment.emoji,
+            peakDecibels: peakDecibels,
+            hardware: experiment.requiredHardware
+        )
 
         if peakDecibels > 85 {
             personality.say("Нихуя себе ты заорал! Аж динамик чуть не выбило. Зачёт!", emotion: .mocking)
