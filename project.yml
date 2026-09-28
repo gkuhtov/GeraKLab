@@ -1,0 +1,30 @@
+name: GeraKLab
+options:
+  bundleIdPrefix: com.gerak
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "15.4"
+targets:
+  GeraKLab:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: GeraKLab
+    info:
+      path: GeraKLab/Info.plist
+      properties:
+        CFBundleDisplayName: "GeraKLab"
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        UILaunchScreen: {}
+    entitlements:
+      path: GeraKLab/entitlements.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.gerak.geraklab
+        SWIFT_VERSION: "5.9"
+        CODE_SIGN_IDENTITY: ""
+        CODE_SIGNING_REQUIRED: "NO"
+        CODE_SIGNING_ALLOWED: "NO"
+        GENERATE_INFOPLIST_FILE: "NO"
