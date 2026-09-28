@@ -90,7 +90,7 @@ public struct SettingsView: View {
             MuseumView()
         }
         .fullScreenCover(isPresented: $showPrivateLab) {
-            privateLabView
+            PrivateLabView()
         }
     }
 
@@ -378,7 +378,7 @@ public struct SettingsView: View {
         }
     }
 
-    private var privateLabView: some View {
+    private var PrivateLabView(): some View {
         ZStack {
             Color.black.ignoresSafeArea()
             VStack(spacing: 18) {
