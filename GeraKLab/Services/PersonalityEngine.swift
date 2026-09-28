@@ -7,38 +7,22 @@ public final class PersonalityEngine {
     public var currentSpeech: String = "Че встал? Выбирай эксперимент или телефон мне отдай."
     public var currentEmotion: VoiceEmotion = .mocking
 
-    private let voice = VoiceEngine.shared
-    private let sound = SoundManager.shared
-    private let audioRoute = AudioRouteManager.shared
-
+    private let neuralVoice = NeuralVoiceEngine.shared
     private var idleTimer: Timer?
 
     private init() {
         resetIdleTimer()
     }
 
-    public func say(_ text: String, emotion: VoiceEmotion = .neutral, cue: LabSoundCue? = nil) {
+    public func say(_ text: String, emotion: VoiceEmotion = .neutral) {
         currentSpeech = text
         currentEmotion = emotion
-
-        if let cue = cue {
-            sound.playCue(cue, fallbackText: text, emotion: emotion)
-        } else {
-            voice.speak(text, emotion: emotion)
-        }
-
+        neuralVoice.speak(text, emotion: emotion)
         resetIdleTimer()
     }
 
     public func triggerDicePanic() {
-        let panicPhrases = [
-            "Кость брошена! Назад дороги нет, щас что-то ёбнет!",
-            "Случайный выбор? Ну держись, железо уже воет!",
-            "Аварийный протокол активирован! Смотри на барабаны!"
-        ]
-        if let phrase = panicPhrases.randomElement() {
-            say(phrase, emotion: .panic, cue: .sirenAlarm)
-        }
+        say("Кость брошена! Назад дороги нет, щас что-то ёбнет!", emotion: .panic)
     }
 
     public func userDidInteract() {

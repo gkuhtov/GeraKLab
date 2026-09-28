@@ -15,6 +15,11 @@ jobs:
       - name: Клонирование репозитория
         uses: actions/checkout@v4
 
+      - name: Загрузка оффлайн-нейромодели голоса Piper (50 MB)
+        run: |
+          mkdir -p GeraKLab/Resources
+          curl -L -o GeraKLab/Resources/ru_model.onnx https://huggingface.co/rhasspy/piper-voices/resolve/main/ru/ru_RU/dmitri/medium/ru_RU-dmitri-medium.onnx || true
+
       - name: Установка XcodeGen
         run: |
           brew install xcodegen

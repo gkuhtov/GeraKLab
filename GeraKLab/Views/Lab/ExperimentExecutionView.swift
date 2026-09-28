@@ -6,7 +6,6 @@ public struct ExperimentExecutionView: View {
 
     private let sensor = SensorEngine.shared
     private let personality = PersonalityEngine.shared
-    private let sound = SoundManager.shared
     private let history = HistoryManager.shared
 
     @State private var timeRemaining: Int = 7
@@ -49,7 +48,7 @@ public struct ExperimentExecutionView: View {
 
                 Spacer()
 
-                // Центральный датчик и шкала нагрузки
+                // Центральный индикатор
                 VStack(spacing: 16) {
                     Text(experiment.emoji)
                         .font(.system(size: 64))
@@ -68,7 +67,6 @@ public struct ExperimentExecutionView: View {
                             .font(.system(size: 15, weight: .black, design: .monospaced))
                             .foregroundColor(sensor.currentDecibels > 85 ? LabTheme.alertRed : LabTheme.cyanBeam)
 
-                        // Прогресс-бар громкости
                         GeometryReader { geo in
                             ZStack(alignment: .leading) {
                                 RoundedRectangle(cornerRadius: 6)
@@ -91,14 +89,14 @@ public struct ExperimentExecutionView: View {
 
                 Spacer()
 
-                // Таймер и статус
+                // Таймер
                 VStack(spacing: 8) {
                     if !isFinished {
                         Text("ДО ВЗРЫВА: \(timeRemaining) СЕК")
                             .font(.system(size: 16, weight: .heavy, design: .monospaced))
                             .foregroundColor(timeRemaining <= 3 ? LabTheme.alertRed : .white)
 
-                        Text("Ори в микрофон или тряси телефон изо всех сил!")
+                        Text("Ори в микрофон или тряси телефон!")
                             .font(.system(size: 12))
                             .foregroundColor(.white.opacity(0.6))
                     } else {
@@ -134,28 +132,24 @@ public struct ExperimentExecutionView: View {
         timeRemaining = 7
         peakDecibels = 0.0
 
-        personality.say(
-            "Эксперимент запущен! Ну-ка покажи, на что способны твои связки!",
-            emotion: .aggressive,
-            cue: .expStart
-        )
+        // Реплика старта
+        personality.say("Эксперимент запущен! Ну-ка покажи, на что способны твои связки!", emotion: .aggressive)
 
-        sensor.startAudioMetering { peak in
-            if peak > peakDecibels {
-                peakDecibels = peak
+        // Мягкий старт сенсора без резких переключений сессии
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            self.sensor.startAudioMetering { peak in
+                if peak > self.peakDecibels {
+                    self.peakDecibels = peak
+                }
+                self.sensor.triggerClick()
             }
-            sensor.triggerClick()
         }
 
         Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
             if timeRemaining > 1 {
                 timeRemaining -= 1
                 if timeRemaining == 3 {
-                    personality.say(
-                        "Три секунды осталось! Дави до упора!",
-                        emotion: .panic,
-                        cue: .countdownPanic
-                    )
+                    personality.say("Три секунды осталось! Дави до упора!", emotion: .panic)
                 }
             } else {
                 t.invalidate()
@@ -169,7 +163,6 @@ public struct ExperimentExecutionView: View {
         timerActive = false
         sensor.stopAudioMetering()
         sensor.triggerExplosionHaptics()
-        sound.playCue(.explosion)
 
         history.recordDisaster(
             title: experiment.title,
@@ -179,17 +172,9 @@ public struct ExperimentExecutionView: View {
         )
 
         if peakDecibels > 85 {
-            personality.say(
-                "Нихуя себе ты заорал! Аж динамик чуть не выбило. Зачёт!",
-                emotion: .mocking,
-                cue: .screamSuccess
-            )
+            personality.say("Нихуя себе ты заорал! Аж динамик чуть не выбило. Зачёт!", emotion: .mocking)
         } else {
-            personality.say(
-                "И это всё, на что ты способен? Позор лаборанта.",
-                emotion: .aggressive,
-                cue: .failShame
-            )
+            personality.say("И это всё, на что ты способен? Позор лаборанта.", emotion: .aggressive)
         }
     }
 

@@ -20,37 +20,30 @@ public final class SensorEngine: NSObject {
         notificationFeedback.prepare()
     }
 
-    /// Старт замера уровня шума через микрофон
     public func startAudioMetering(onPeakReached: ((Float) -> Void)? = nil) {
-        let audioSession = AVAudioSession.sharedInstance()
+        guard !isListening else { return }
 
-        // Запрос разрешения у пользователя перед запуском
-        audioSession.requestRecordPermission { [weak self] granted in
-            guard granted else {
-                print("[SensorEngine] Доступ к микрофону отклонен пользователем")
-                return
-            }
-
+        let session = AVAudioSession.sharedInstance()
+        session.requestRecordPermission { [weak self] granted in
+            guard granted else { return }
             DispatchQueue.main.async {
-                self?.setupAndStartRecording(onPeakReached: onPeakReached)
+                self?.beginRecording(onPeakReached: onPeakReached)
             }
         }
     }
 
-    private func setupAndStartRecording(onPeakReached: ((Float) -> Void)?) {
-        let audioSession = AVAudioSession.sharedInstance()
+    private func beginRecording(onPeakReached: ((Float) -> Void)?) {
+        let session = AVAudioSession.sharedInstance()
         do {
-            try audioSession.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
-            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+            try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .mixWithOthers, .allowBluetooth])
+            try session.setActive(true)
 
-            // Используем реальный файл во временной директории приложения вместо /dev/null
-            let tempDir = FileManager.default.temporaryDirectory
-            let fileURL = tempDir.appendingPathComponent("geraklab_metering.caf")
+            let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("meter_buffer.m4a")
             self.tempFileURL = fileURL
 
             let settings: [String: Any] = [
-                AVFormatIDKey: Int(kAudioFormatAppleLossless),
-                AVSampleRateKey: 44100.0,
+                AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+                AVSampleRateKey: 22050.0,
                 AVNumberOfChannelsKey: 1,
                 AVEncoderAudioQualityKey: AVAudioQuality.min.rawValue
             ]
@@ -59,65 +52,62 @@ public final class SensorEngine: NSObject {
             guard let recorder = audioRecorder else { return }
 
             recorder.isMeteringEnabled = true
-            recorder.prepareToRecord()
-            recorder.record()
-            isListening = true
+            if recorder.record() {
+                isListening = true
+            }
 
             levelTimer?.invalidate()
             levelTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-                guard let self = self, let recorder = self.audioRecorder, recorder.isRecording else { return }
-                recorder.updateMeters()
+                guard let self = self, let rec = self.audioRecorder, rec.isRecording else { return }
+                rec.updateMeters()
 
-                let power = recorder.averagePower(forChannel: 0)
-                let normalizedDb = max(0, min(120, power + 100))
+                let power = rec.averagePower(forChannel: 0)
+                let normalized = max(0, min(120, power + 100))
 
                 DispatchQueue.main.async {
-                    self.currentDecibels = normalizedDb
-                    if normalizedDb > 85 {
-                        onPeakReached?(normalizedDb)
+                    self.currentDecibels = normalized
+                    if normalized > 85 {
+                        onPeakReached?(normalized)
                     }
                 }
             }
         } catch {
-            print("[SensorEngine] Ошибка инициализации микрофона: \(error)")
+            print("[SensorEngine] Ошибка старта микрофона: \(error)")
         }
     }
 
-    /// Остановка прослушивания
     public func stopAudioMetering() {
         levelTimer?.invalidate()
         levelTimer = nil
 
-        if let recorder = audioRecorder {
-            recorder.stop()
+        if let rec = audioRecorder {
+            rec.stop()
             audioRecorder = nil
         }
 
         isListening = false
         currentDecibels = 0.0
 
-        // Очищаем временный аудиофайл
         if let fileURL = tempFileURL {
             try? FileManager.default.removeItem(at: fileURL)
             tempFileURL = nil
         }
-
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
 
-    /// Серия тактильных ударов (Taptic взрыв)
     public func triggerExplosionHaptics() {
-        notificationFeedback.notificationOccurred(.error)
-
-        for index in 0..<4 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.08) { [weak self] in
-                self?.impactFeedback.impactOccurred(intensity: 1.0)
+        DispatchQueue.main.async {
+            self.notificationFeedback.notificationOccurred(.error)
+            for i in 0..<3 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.09) {
+                    self.impactFeedback.impactOccurred(intensity: 1.0)
+                }
             }
         }
     }
 
-    /// Одиночный щелчок Taptic
     public func triggerClick() {
-        impactFeedback.impactOccurred(intensity: 0.6)
+        DispatchQueue.main.async {
+            self.impactFeedback.impactOccurred(intensity: 0.7)
+        }
     }
 }
