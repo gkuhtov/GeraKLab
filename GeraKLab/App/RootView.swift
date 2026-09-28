@@ -22,9 +22,7 @@ public struct RootView: View {
                 case .favorites:
                     FavoritesView()
                 case .history:
-                    Text("🕘 Журнал катастроф и позора")
-                        .font(.title2.bold())
-                        .foregroundColor(.white)
+                    HistoryView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
