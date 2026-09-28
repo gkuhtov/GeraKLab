@@ -36,7 +36,7 @@ public struct LabView: View {
                 }
                 .padding(.top, 54)
 
-                // Кнопка верстака: «Собрать свой пиздец»
+                // Кнопка верстака
                 Button {
                     personality.say("Решил сам конструктор собрать? Ну крути тумблеры, гений.", emotion: .neutral)
                     showWorkbench = true
@@ -62,7 +62,7 @@ public struct LabView: View {
                 }
                 .buttonStyle(.plain)
 
-                // Горизонтальные трэш-фильтры
+                // Фильтры
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
                         ForEach(filters, id: \.self) { filter in
@@ -135,7 +135,11 @@ public struct LabView: View {
             .padding(.horizontal, 20)
         }
         .sheet(isPresented: $showWorkbench) {
-            WorkbenchView()
+            WorkbenchView { customExp in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    activeExperiment = customExp
+                }
+            }
         }
         .fullScreenCover(item: $activeExperiment) { item in
             ExperimentExecutionView(experiment: item)

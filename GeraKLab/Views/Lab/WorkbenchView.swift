@@ -2,6 +2,8 @@ import SwiftUI
 
 public struct WorkbenchView: View {
     @Environment(\.dismiss) private var dismiss
+    public var onLaunchCustomExperiment: (ExperimentItem) -> Void
+
     private let personality = PersonalityEngine.shared
 
     @State private var selectedSensor: String = "Микрофон"
@@ -9,13 +11,21 @@ public struct WorkbenchView: View {
     @State private var triggerDecibels: Double = 80.0
     @State private var toxicityLevel: Double = 90.0
 
-    private let sensors = ["Микрофон", "Taptic Engine", "Вспышка", "Гироскоп", "Камера"]
+    private let sensors = [
+        ("Микрофон", "🎙️", LabTheme.hazardOrange),
+        ("Taptic Engine", "⚡", LabTheme.cyanBeam),
+        ("Вспышка", "🔦", LabTheme.toxicGreen),
+        ("Гироскоп", "🧭", LabTheme.alertRed),
+        ("Камера", "📸", LabTheme.cyanBeam)
+    ]
 
-    public init() {}
+    public init(onLaunchCustomExperiment: @escaping (ExperimentItem) -> Void = { _ in }) {
+        self.onLaunchCustomExperiment = onLaunchCustomExperiment
+    }
 
     public var body: some View {
         ZStack {
-            Color.black.opacity(0.9).ignoresSafeArea()
+            Color.black.opacity(0.92).ignoresSafeArea()
 
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 20) {
@@ -35,13 +45,13 @@ public struct WorkbenchView: View {
                             dismiss()
                         } label: {
                             Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 24))
+                                .font(.system(size: 26))
                                 .foregroundColor(.white.opacity(0.4))
                         }
                     }
                     .padding(.top, 24)
 
-                    // Выбор железа
+                    // 1. Выбор датчика
                     VStack(alignment: .leading, spacing: 10) {
                         Text("1. КАКОЙ ДАТЧИК НАСИЛУЕМ?")
                             .font(.system(size: 11, weight: .bold))
@@ -49,18 +59,21 @@ public struct WorkbenchView: View {
 
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 10) {
-                                ForEach(sensors, id: \.self) { sensor in
+                                ForEach(sensors, id: \.0) { item in
                                     Button {
-                                        selectedSensor = sensor
-                                        personality.say("Выбрал \(sensor)? Ну посмотрим, выдержит ли труба.", emotion: .mocking)
+                                        selectedSensor = item.0
+                                        personality.say("Выбрал \(item.0)? Ну посмотрим, выдержит ли железо.", emotion: .mocking)
                                     } label: {
-                                        Text(sensor)
-                                            .font(.system(size: 13, weight: .bold))
-                                            .foregroundColor(selectedSensor == sensor ? .black : .white)
-                                            .padding(.horizontal, 14)
-                                            .padding(.vertical, 8)
-                                            .background(selectedSensor == sensor ? LabTheme.toxicGreen : Color.white.opacity(0.1))
-                                            .clipShape(Capsule())
+                                        HStack(spacing: 6) {
+                                            Text(item.1)
+                                            Text(item.0)
+                                                .font(.system(size: 13, weight: .bold))
+                                        }
+                                        .foregroundColor(selectedSensor == item.0 ? .black : .white)
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 8)
+                                        .background(selectedSensor == item.0 ? LabTheme.toxicGreen : Color.white.opacity(0.1))
+                                        .clipShape(Capsule())
                                     }
                                 }
                             }
@@ -69,7 +82,7 @@ public struct WorkbenchView: View {
                     .padding(16)
                     .liquidGlass(cornerRadius: 20, borderOpacity: 0.25)
 
-                    // Задержка до взрыва
+                    // 2. Таймер до взрыва
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Text("ТАЙМЕР ДО ВЗРЫВА")
@@ -77,7 +90,7 @@ public struct WorkbenchView: View {
                                 .foregroundColor(.white.opacity(0.6))
                             Spacer()
                             Text("\(Int(explosionDelay)) сек")
-                                .font(.system(size: 13, weight: .black))
+                                .font(.system(size: 14, weight: .black, design: .monospaced))
                                 .foregroundColor(LabTheme.hazardOrange)
                         }
 
@@ -87,15 +100,15 @@ public struct WorkbenchView: View {
                     .padding(16)
                     .liquidGlass(cornerRadius: 20, borderOpacity: 0.25)
 
-                    // Порог срабатывания
+                    // 3. Порог срабатывания
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            Text("ПОРОГ СРАБАТЫВАНИЯ (ДБ / УСКОРЕНИЕ)")
+                            Text("ПОРОГ СРАБАТЫВАНИЯ (ДБ / СИЛА)")
                                 .font(.system(size: 11, weight: .bold))
                                 .foregroundColor(.white.opacity(0.6))
                             Spacer()
                             Text("\(Int(triggerDecibels)) дБ")
-                                .font(.system(size: 13, weight: .black))
+                                .font(.system(size: 14, weight: .black, design: .monospaced))
                                 .foregroundColor(LabTheme.cyanBeam)
                         }
 
@@ -105,7 +118,7 @@ public struct WorkbenchView: View {
                     .padding(16)
                     .liquidGlass(cornerRadius: 20, borderOpacity: 0.25)
 
-                    // Градус токсичности
+                    // 4. Градус мата и токсичности
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Text("ГРАДУС МАТА И ТОКСИЧНОСТИ")
@@ -113,7 +126,7 @@ public struct WorkbenchView: View {
                                 .foregroundColor(.white.opacity(0.6))
                             Spacer()
                             Text("\(Int(toxicityLevel))%")
-                                .font(.system(size: 13, weight: .black))
+                                .font(.system(size: 14, weight: .black, design: .monospaced))
                                 .foregroundColor(LabTheme.alertRed)
                         }
 
@@ -123,10 +136,9 @@ public struct WorkbenchView: View {
                     .padding(16)
                     .liquidGlass(cornerRadius: 20, borderOpacity: 0.25)
 
-                    // Кнопка сохранения и теста
+                    // Кнопка запуска
                     Button {
-                        personality.say("Конфиг собран к хуям! Щас бахнет!", emotion: .panic)
-                        dismiss()
+                        launchCustomCraft()
                     } label: {
                         HStack {
                             Spacer()
@@ -145,5 +157,21 @@ public struct WorkbenchView: View {
                 .padding(.bottom, 40)
             }
         }
+    }
+
+    private func launchCustomCraft() {
+        let currentEmoji = sensors.first(where: { $0.0 == selectedSensor })?.1 ?? "🧪"
+        let customExp = ExperimentItem(
+            id: "custom_\(UUID().uuidString.prefix(6))",
+            title: "Кастом: \(selectedSensor)",
+            subtitle: "Таймер \(Int(explosionDelay))с • Порог \(Int(triggerDecibels)) дБ",
+            emoji: currentEmoji,
+            requiredHardware: selectedSensor,
+            accentColor: LabTheme.hazardOrange
+        )
+
+        personality.say("Конфиг собран! Держи телефон крепче, щас бахнет!", emotion: .panic)
+        dismiss()
+        onLaunchCustomExperiment(customExp)
     }
 }
