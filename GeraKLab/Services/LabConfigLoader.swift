@@ -13,7 +13,7 @@ public final class LabConfigLoader {
     public func loadExperiments() {
         guard let url = Bundle.main.url(forResource: "experiments", withExtension: "json"),
               let data = try? Data(contentsOf: url),
-              let list = try? JSONDecoder().decode([ExperimentItem].self, data) else {
+              let list = try? JSONDecoder().decode([ExperimentItem].self, from: data) else {
             // Фолбэк дефолтных
             self.experiments = [
                 ExperimentItem(id: "exp_01", title: "Капля нитроглицерина", description: "Замри и не дыши", emoji: "🧪", dangerLevel: 4, requiredHardware: "Акселерометр", hexColor: "#FF3B30", mechanic: "nitro_freeze"),
