@@ -27,7 +27,6 @@ public struct LabView: View {
         ZStack {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 18) {
-                    // Шапка
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("🔬 ЗОНА ИСПЫТАНИЙ")
@@ -42,7 +41,6 @@ public struct LabView: View {
                     }
                     .padding(.top, 24)
 
-                    // Поиск
                     HStack {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.white.opacity(0.4))
@@ -52,7 +50,6 @@ public struct LabView: View {
                     .padding(12)
                     .liquidGlass(cornerRadius: 16, borderOpacity: 0.2)
 
-                    // Горизонтальный фильтр по датчикам
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
                             ForEach(filters, id: \.self) { filter in
@@ -71,7 +68,6 @@ public struct LabView: View {
                         }
                     }
 
-                    // Список карточек
                     LazyVStack(spacing: 14) {
                         ForEach(filteredExperiments) { experiment in
                             experimentCard(experiment)

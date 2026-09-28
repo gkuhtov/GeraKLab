@@ -13,7 +13,7 @@ public struct ExperimentItem: Identifiable, Codable, Hashable, Sendable {
     public var isFavorite: Bool
 
     public var accentColor: Color {
-        Color(hex: hexColor) ?? LabTheme.cyanBeam
+        Color(hex: hexColor)
     }
 
     public var resolvedMechanic: String {
@@ -26,14 +26,15 @@ public struct ExperimentItem: Identifiable, Codable, Hashable, Sendable {
         return "audio_scream"
     }
 
+    // Основной инициализатор
     public init(
         id: String,
         title: String,
-        description: String,
-        emoji: String,
-        dangerLevel: Int,
-        requiredHardware: String,
-        hexColor: String,
+        description: String = "",
+        emoji: String = "⚡",
+        dangerLevel: Int = 3,
+        requiredHardware: String = "Датчик",
+        hexColor: String = "#00F0FF",
         mechanic: String? = nil,
         runCount: Int = 0,
         isFavorite: Bool = false
@@ -45,6 +46,31 @@ public struct ExperimentItem: Identifiable, Codable, Hashable, Sendable {
         self.dangerLevel = dangerLevel
         self.requiredHardware = requiredHardware
         self.hexColor = hexColor
+        self.mechanic = mechanic
+        self.runCount = runCount
+        self.isFavorite = isFavorite
+    }
+
+    // Совместимый инициализатор для старого кода (с subtitle и accentColor)
+    public init(
+        id: String,
+        title: String,
+        subtitle: String = "",
+        emoji: String = "⚡",
+        requiredHardware: String = "Датчик",
+        accentColor: Color = LabTheme.cyanBeam,
+        dangerLevel: Int = 3,
+        mechanic: String? = nil,
+        runCount: Int = 0,
+        isFavorite: Bool = false
+    ) {
+        self.id = id
+        self.title = title
+        self.description = subtitle
+        self.emoji = emoji
+        self.dangerLevel = dangerLevel
+        self.requiredHardware = requiredHardware
+        self.hexColor = "#00F0FF"
         self.mechanic = mechanic
         self.runCount = runCount
         self.isFavorite = isFavorite

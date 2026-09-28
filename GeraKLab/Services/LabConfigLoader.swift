@@ -1,66 +1,26 @@
 import Foundation
-import SwiftUI
 
-public struct ConfigExperimentItem: Codable, Identifiable {
-    public let id: String
-    public let title: String
-    public let subtitle: String
-    public let emoji: String
-    public let category: String
-    public let requiredHardware: String
-    public let accentColorHex: String
-    public let triggerDecibels: Int
-    public let durationSeconds: Int
-    public let phrases: [String]
-
-    public var accentColor: Color {
-        Color(hex: accentColorHex)
-    }
-}
-
+@Observable
 public final class LabConfigLoader {
     public static let shared = LabConfigLoader()
 
-    private(set) var experiments: [ConfigExperimentItem] = []
+    public var experiments: [ExperimentItem] = []
 
     private init() {
-        loadConfig()
+        loadExperiments()
     }
 
-    public func loadConfig() {
-        guard let url = Bundle.main.url(forResource: "experiments", withExtension: "json") else {
-            print("[LabConfigLoader] experiments.json не найден в бандле.")
+    public func loadExperiments() {
+        guard let url = Bundle.main.url(forResource: "experiments", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let list = try? JSONDecoder().decode([ExperimentItem].self, data) else {
+            // Фолбэк дефолтных
+            self.experiments = [
+                ExperimentItem(id: "exp_01", title: "Капля нитроглицерина", description: "Замри и не дыши", emoji: "🧪", dangerLevel: 4, requiredHardware: "Акселерометр", hexColor: "#FF3B30", mechanic: "nitro_freeze"),
+                ExperimentItem(id: "exp_06", title: "Акустический перегруз", description: "Крикни в микрофон", emoji: "💥", dangerLevel: 3, requiredHardware: "Микрофон", hexColor: "#FF2D55", mechanic: "audio_scream")
+            ]
             return
         }
-
-        do {
-            let data = try Data(contentsOf: url)
-            self.experiments = try JSONDecoder().decode([ConfigExperimentItem].self, from: data)
-        } catch {
-            print("[LabConfigLoader] Ошибка парсинга experiments.json: \(error)")
-        }
-    }
-}
-
-// Хелпер создания цвета из HEX
-extension Color {
-    init(hex: String) {
-        let scanner = Scanner(string: hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted))
-        var int: UInt64 = 0
-        scanner.scanHexInt64(&int)
-        let a, r, g, b: UInt64
-        switch hex.count {
-        case 7: // #RRGGBB
-            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        default:
-            (a, r, g, b) = (255, 0, 255, 135)
-        }
-        self.init(
-            .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue: Double(b) / 255,
-            opacity: Double(a) / 255
-        )
+        self.experiments = list
     }
 }
