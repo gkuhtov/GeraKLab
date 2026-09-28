@@ -11,6 +11,9 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: GeraKLab
+        excludes:
+          - "Info.plist"
+          - "entitlements.plist"
     info:
       path: GeraKLab/Info.plist
       properties:

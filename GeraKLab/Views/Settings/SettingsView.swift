@@ -17,7 +17,6 @@ public struct SettingsView: View {
     // Модальные экраны
     @State private var showMuseum: Bool = false
     @State private var showPrivateLab: Bool = false
-    @State private var showStressAlert: Bool = false
 
     private let autonomyLevels = ["Осторожный", "Обычный", "Безумный"]
 
@@ -304,7 +303,6 @@ public struct SettingsView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
 
-                // Прогресс-бар
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 6)
@@ -375,33 +373,6 @@ public struct SettingsView: View {
         .onLongPressGesture(minimumDuration: 2.5) {
             personality.say("Доступ в Private Lab разрешён. Добро пожаловать во тьму.", emotion: .whisper)
             showPrivateLab = true
-        }
-    }
-
-    private var PrivateLabView(): some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            VStack(spacing: 18) {
-                Text("☣️ PRIVATE LAB: 18+")
-                    .font(.system(size: 20, weight: .black, design: .monospaced))
-                    .foregroundColor(LabTheme.alertRed)
-                Text("Сверхчувствительные опыты без тормозов и цензуры")
-                    .font(.system(size: 13))
-                    .foregroundColor(.white.opacity(0.6))
-                    .multilineTextAlignment(.center)
-                Button {
-                    showPrivateLab = false
-                } label: {
-                    Text("ЭКСТРЕННАЯ ЭВАКУАЦИЯ")
-                        .font(.system(size: 13, weight: .black))
-                        .foregroundColor(.black)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
-                        .background(LabTheme.alertRed)
-                        .clipShape(Capsule())
-                }
-            }
-            .padding(24)
         }
     }
 }
