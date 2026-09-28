@@ -30,6 +30,17 @@ public final class PersonalityEngine {
         resetIdleTimer()
     }
 
+    public func triggerDicePanic() {
+        let panicPhrases = [
+            "Кость брошена! Назад дороги нет, щас что-то ёбнет!",
+            "Случайный выбор? Ну держись, железо уже воет!",
+            "Аварийный протокол активирован! Смотри на барабаны!"
+        ]
+        if let phrase = panicPhrases.randomElement() {
+            say(phrase, emotion: .panic, cue: .sirenAlarm)
+        }
+    }
+
     public func userDidInteract() {
         resetIdleTimer()
     }
