@@ -3,6 +3,7 @@ import SwiftUI
 public struct LabView: View {
     @State private var selectedFilter: String = "Все"
     @State private var showWorkbench: Bool = false
+    @State private var activeExperiment: ExperimentItem?
     private let personality = PersonalityEngine.shared
 
     private let filters = ["Все", "Для компании с пивом", "На выживание железа", "Ультразвуковой разъёб", "Камера и LiDAR"]
@@ -109,7 +110,7 @@ public struct LabView: View {
                                     .foregroundColor(.white.opacity(0.45))
                                 Spacer()
                                 Button {
-                                    personality.say("Запускаю \(exp.title)! Не обосрись там!", emotion: .aggressive)
+                                    activeExperiment = exp
                                 } label: {
                                     Text("ТЕСТ")
                                         .font(.system(size: 11, weight: .black))
@@ -123,6 +124,9 @@ public struct LabView: View {
                         }
                         .padding(16)
                         .liquidGlass(cornerRadius: 22, borderOpacity: 0.25)
+                        .onTapGesture {
+                            activeExperiment = exp
+                        }
                     }
                 }
 
@@ -132,6 +136,9 @@ public struct LabView: View {
         }
         .sheet(isPresented: $showWorkbench) {
             WorkbenchView()
+        }
+        .fullScreenCover(item: $activeExperiment) { item in
+            ExperimentExecutionView(experiment: item)
         }
     }
 }
