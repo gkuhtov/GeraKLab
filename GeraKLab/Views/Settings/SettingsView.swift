@@ -360,7 +360,7 @@ public struct SettingsView: View {
     private var secretProtocolTrigger: some View {
         VStack(spacing: 6) {
             Text("GeraKLab Engine Core v2.0")
-                .font(.system(size: 10, weight: .monospaced))
+                .font(.system(size: 10, design: .monospaced))
                 .foregroundColor(.white.opacity(0.25))
 
             Text("🔒 Удерживай 3 сек для Private Lab")

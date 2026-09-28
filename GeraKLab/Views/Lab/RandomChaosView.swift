@@ -156,7 +156,7 @@ public struct RandomChaosView: View {
         isSpinning = true
         isCountdownActive = false
 
-        let timer = Timer.scheduledTimer(withTimeInterval: 0.08, repeats: true) { t in
+        _ = Timer.scheduledTimer(withTimeInterval: 0.08, repeats: true) { t in
             if isSpinning {
                 objectIndex = Int.random(in: 0..<objects.count)
                 actionIndex = Int.random(in: 0..<actions.count)
