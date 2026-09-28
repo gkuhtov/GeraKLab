@@ -3,8 +3,10 @@ import SwiftUI
 public struct FavoriteExperimentItem: Identifiable {
     public let id: String
     public let title: String
+    public let subtitle: String
     public let emoji: String
     public var runCount: Int
+    public let requiredHardware: String
     public let accentColor: Color
 
     public var verdict: String {
@@ -28,15 +30,51 @@ public struct FavoriteExperimentItem: Identifiable {
             return "ЛЮБИМАЯ ПЫТКА"
         }
     }
+
+    public func toExperimentItem() -> ExperimentItem {
+        ExperimentItem(
+            id: id,
+            title: title,
+            subtitle: subtitle,
+            emoji: emoji,
+            requiredHardware: requiredHardware,
+            accentColor: accentColor
+        )
+    }
 }
 
 public struct FavoritesView: View {
     private let personality = PersonalityEngine.shared
+    @State private var activeExperiment: ExperimentItem?
 
     @State private var favorites: [FavoriteExperimentItem] = [
-        FavoriteExperimentItem(id: "fav_polygraph", title: "Детектор пиздежа 18+", emoji: "🫀", runCount: 11, accentColor: LabTheme.toxicGreen),
-        FavoriteExperimentItem(id: "fav_shake_bomb", title: "Тряси или пизданёт", emoji: "💣", runCount: 4, accentColor: LabTheme.hazardOrange),
-        FavoriteExperimentItem(id: "fav_ultrasound", title: "Ультразвуковой визг", emoji: "🔊", runCount: 1, accentColor: LabTheme.alertRed)
+        FavoriteExperimentItem(
+            id: "polygraph_extreme",
+            title: "Детектор пиздежа 18+",
+            subtitle: "Сканирует палец и жестко глумится над ответом",
+            emoji: "🫀",
+            runCount: 11,
+            requiredHardware: "Камера + Пульс",
+            accentColor: LabTheme.toxicGreen
+        ),
+        FavoriteExperimentItem(
+            id: "shake_bomb",
+            title: "Тряси или пизданёт",
+            subtitle: "Таймер тикает, пока телефон в движении",
+            emoji: "💣",
+            runCount: 4,
+            requiredHardware: "Акселерометр",
+            accentColor: LabTheme.hazardOrange
+        ),
+        FavoriteExperimentItem(
+            id: "ultrasound_purge",
+            title: "Ультразвуковой визг",
+            subtitle: "Частоты от 15 кГц до паники кота",
+            emoji: "🔊",
+            runCount: 1,
+            requiredHardware: "Динамики",
+            accentColor: LabTheme.alertRed
+        )
     ]
 
     private var totalRuns: Int {
@@ -94,7 +132,7 @@ public struct FavoritesView: View {
                                         .font(.system(size: 16, weight: .bold))
                                         .foregroundColor(.white)
 
-                                    // Крупный акцентный блок: СКОЛЬКО БЫЛО ЗАПУСКОВ
+                                    // Крупный акцентный блок количества запусков
                                     HStack(spacing: 6) {
                                         Text("ЗАПУЩЕНО:")
                                             .font(.system(size: 11, weight: .bold))
@@ -149,12 +187,19 @@ public struct FavoritesView: View {
                         }
                         .padding(16)
                         .liquidGlass(cornerRadius: 22, borderOpacity: 0.3)
+                        .onTapGesture {
+                            item.runCount += 1
+                            triggerRerun(for: item)
+                        }
                     }
                 }
 
                 Spacer().frame(height: 110)
             }
             .padding(.horizontal, 20)
+        }
+        .fullScreenCover(item: $activeExperiment) { item in
+            ExperimentExecutionView(experiment: item)
         }
     }
 
@@ -166,5 +211,6 @@ public struct FavoritesView: View {
         } else {
             personality.say("Второй раз запустил, смелый какой. Пальцы береги!", emotion: .neutral)
         }
+        activeExperiment = item.toExperimentItem()
     }
 }
