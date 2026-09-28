@@ -29,14 +29,22 @@ public final class PersonalityEngine {
         resetIdleTimer()
     }
 
-    private func resetIdleTimer() {
+    public func resetIdleTimer() {
         idleTimer?.invalidate()
+        
+        // Если онбординг ещё не пройден — профессор молчит и не донимает
+        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+        guard hasCompletedOnboarding else { return }
+
         idleTimer = Timer.scheduledTimer(withTimeInterval: 14.0, repeats: false) { [weak self] _ in
             self?.triggerIdleBanter()
         }
     }
 
     private func triggerIdleBanter() {
+        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+        guard hasCompletedOnboarding else { return }
+
         let banters = [
             "Ты уснул там? Жми на кнопку, пока батарея не сдохла!",
             "Экран щас протрешь пальцем. Запускай разъёб!",

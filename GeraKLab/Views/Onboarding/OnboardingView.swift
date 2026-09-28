@@ -14,7 +14,6 @@ public struct OnboardingView: View {
     @State private var calibrationPassed: Bool = false
     @State private var peakShout: Float = 0.0
     private let sensor = SensorEngine.shared
-    private let personality = PersonalityEngine.shared
 
     public init(isCompleted: Binding<Bool>) {
         self._isCompleted = isCompleted
@@ -25,7 +24,7 @@ public struct OnboardingView: View {
             Color.black.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Верхний прогресс-бар шагов
+                // Прогресс-бар шагов
                 HStack(spacing: 8) {
                     ForEach(1...3, id: \.self) { index in
                         Capsule()
@@ -51,11 +50,16 @@ public struct OnboardingView: View {
                         EmptyView()
                     }
                 }
-                .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity),
-                                        removal: .move(edge: .leading).combined(with: .opacity)))
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing).combined(with: .opacity),
+                    removal: .move(edge: .leading).combined(with: .opacity)
+                ))
 
                 Spacer()
             }
+        }
+        .onAppear {
+            checkCurrentPermissions()
         }
     }
 
@@ -195,7 +199,14 @@ public struct OnboardingView: View {
         }
     }
 
-    private func permissionCard(title: String, speech: String, buttonTitle: String, isGranted: Bool, color: Color, action: @escaping () -> Void) -> some View {
+    private func permissionCard(
+        title: String,
+        speech: String,
+        buttonTitle: String,
+        isGranted: Bool,
+        color: Color,
+        action: @escaping () -> Void
+    ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(title)
@@ -273,6 +284,7 @@ public struct OnboardingView: View {
 
             Button {
                 sensor.stopAudioMetering()
+                PersonalityEngine.shared.say("Лаборатория открыта. Пиздуй работать, лаборант!", emotion: .aggressive)
                 isCompleted = true
             } label: {
                 HStack {
@@ -309,19 +321,53 @@ public struct OnboardingView: View {
         }
     }
 
-    // MARK: - Системные запросы разрешений
-    private func requestMicrophone() {
-        AVAudioSession.sharedInstance().requestRecordPermission { granted in
+    // MARK: - Системные проверки и запросы разрешений
+    private func checkCurrentPermissions() {
+        // Микрофон
+        if #available(iOS 17.0, *) {
+            micGranted = AVAudioApplication.shared.recordPermission == .granted
+        } else {
+            micGranted = AVAudioSession.sharedInstance().recordPermission == .granted
+        }
+
+        // Камера
+        cameraGranted = AVCaptureDevice.authorizationStatus(for: .video) == .authorized
+
+        // Пуши
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
             DispatchQueue.main.async {
-                self.micGranted = granted
+                self.pushGranted = settings.authorizationStatus == .authorized
+            }
+        }
+    }
+
+    private func requestMicrophone() {
+        if #available(iOS 17.0, *) {
+            AVAudioApplication.requestRecordPermission { granted in
+                DispatchQueue.main.async {
+                    self.micGranted = granted
+                }
+            }
+        } else {
+            AVAudioSession.sharedInstance().requestRecordPermission { granted in
+                DispatchQueue.main.async {
+                    self.micGranted = granted
+                }
             }
         }
     }
 
     private func requestCamera() {
-        AVCaptureDevice.requestAccess(for: .video) { granted in
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        if status == .notDetermined {
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                DispatchQueue.main.async {
+                    self.cameraGranted = granted
+                }
+            }
+        } else {
             DispatchQueue.main.async {
-                self.cameraGranted = granted
+                self.cameraGranted = (status == .authorized)
             }
         }
     }
