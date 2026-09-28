@@ -3,19 +3,19 @@ import SwiftUI
 public struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     private let personality = PersonalityEngine.shared
+    private let museum = MuseumManager.shared
 
     // Тумблеры поведения
     @State private var safeForMomMode: Bool = false
     @State private var toxicityLevel: Double = 85.0
     @State private var autonomyMode: String = "Безумный"
-    @State private var volumeLimiter: Double = 90.0
 
     // Оформление
     @State private var glassIntensity: Double = 0.85
 
-    // Секретный протокол
+    // Модальные экраны
+    @State private var showMuseum: Bool = false
     @State private var showPrivateLab: Bool = false
-    @State private var secretHoldProgress: CGFloat = 0.0
 
     private let autonomyLevels = ["Осторожный", "Обычный", "Безумный"]
 
@@ -58,7 +58,7 @@ public struct SettingsView: View {
                     // 🎨 Оформление Liquid Glass
                     appearanceSection
 
-                    // 🏛️ Музей катастроф
+                    // 🏛️ Музей катастроф (Кликабельный)
                     museumSection
 
                     // 🔐 Датчики и разрешения iOS
@@ -78,6 +78,9 @@ public struct SettingsView: View {
                 .padding(.horizontal, 20)
                 .padding(.bottom, 20)
             }
+        }
+        .sheet(isPresented: $showMuseum) {
+            MuseumView()
         }
         .fullScreenCover(isPresented: $showPrivateLab) {
             privateLabView
@@ -117,7 +120,6 @@ public struct SettingsView: View {
                 .foregroundColor(LabTheme.hazardOrange)
                 .tracking(1.5)
 
-            // Режим при маме
             Toggle(isOn: $safeForMomMode) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Режим «При маме»")
@@ -139,7 +141,6 @@ public struct SettingsView: View {
 
             Divider().background(Color.white.opacity(0.1))
 
-            // Автономность
             VStack(alignment: .leading, spacing: 6) {
                 Text("Уровень автономности: \(autonomyMode)")
                     .font(.system(size: 12, weight: .bold))
@@ -155,7 +156,6 @@ public struct SettingsView: View {
 
             Divider().background(Color.white.opacity(0.1))
 
-            // Градус наездов
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text("Градус токсичности")
@@ -200,29 +200,35 @@ public struct SettingsView: View {
         .liquidGlass(cornerRadius: 22, borderOpacity: 0.25)
     }
 
-    // MARK: - 🏛️ Музей катастроф
+    // MARK: - 🏛️ Музей катастроф (Кликабельный)
     private var museumSection: some View {
-        HStack(spacing: 14) {
-            Text("🏛️")
-                .font(.system(size: 30))
-                .frame(width: 48, height: 48)
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        Button {
+            personality.say("Пойдём поглядим на твои подвиги вандализма.", emotion: .mocking)
+            showMuseum = true
+        } label: {
+            HStack(spacing: 14) {
+                Text("🏛️")
+                    .font(.system(size: 30))
+                    .frame(width: 48, height: 48)
+                    .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Музей разбитых надежд")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(.white)
-                Text("Открыто: 7 из 48 артефактов урона")
-                    .font(.system(size: 11))
-                    .foregroundColor(.white.opacity(0.5))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Музей разбитых надежд")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white)
+                    Text("Открыто: \(museum.unlockedCount) из \(museum.totalCount) артефактов урона")
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.5))
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.white.opacity(0.3))
             }
-            Spacer()
-            Image(systemName: "chevron.right")
-                .foregroundColor(.white.opacity(0.3))
+            .padding(16)
+            .liquidGlass(cornerRadius: 22, borderOpacity: 0.25)
         }
-        .padding(16)
-        .liquidGlass(cornerRadius: 22, borderOpacity: 0.25)
+        .buttonStyle(.plain)
     }
 
     // MARK: - 🔐 Датчики и железо
@@ -322,7 +328,6 @@ public struct SettingsView: View {
         }
     }
 
-    // Вью закрытой лаборатории
     private var privateLabView: some View {
         ZStack {
             Color.black.ignoresSafeArea()
