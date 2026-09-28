@@ -10,18 +10,30 @@ public struct ExperimentExecutionView: View {
     private let personality = PersonalityEngine.shared
     private let history = HistoryManager.shared
 
-    @State private var timeRemaining: Int = 6
+    // Состояния сессии
     @State private var isFinished: Bool = false
     @State private var hasFailed: Bool = false
-    @State private var runTimer: Timer?
+    @State private var failureReason: String = ""
+    @State private var gameLoopTimer: Timer?
+    @State private var totalTimeElapsed: Double = 0.0
 
-    // Метрики
-    @State private var peakScore: Double = 0.0
-    @State private var sustainSeconds: Double = 0.0
-    @State private var touchHits: Int = 0
-    @State private var isRedLightActive: Bool = false
-    @State private var proximityEngaged: Bool = false
-    @State private var strobeFlash: Bool = false
+    // Прогресс 0.0 ... 1.0
+    @State private var gameProgress: Double = 0.0
+
+    // Физика ядра (core_balance)
+    @State private var ballPosition: CGPoint = .zero
+    @State private var ballVelocity: CGPoint = .zero
+
+    // Светофор (red_light_green_light)
+    @State private var isRedPhase: Bool = false
+    @State private var nextPhaseSwitch: Double = 1.8
+
+    // Тапы и вспышка (strobe_touch)
+    @State private var tapHits: Int = 0
+    @State private var strobeScreenFlash: Bool = false
+
+    // Датчик приближения (proximity_facepalm)
+    @State private var proximityContactSeconds: Double = 0.0
 
     public init(experiment: ExperimentItem) {
         self.experiment = experiment
@@ -29,48 +41,31 @@ public struct ExperimentExecutionView: View {
 
     public var body: some View {
         ZStack {
-            if experiment.resolvedMechanic == "strobe_touch" && strobeFlash {
+            if hasFailed {
+                LabTheme.alertRed.opacity(0.85).ignoresSafeArea()
+            } else if experiment.resolvedMechanic == "red_light_green_light" && isRedPhase {
+                Color.red.opacity(0.8).ignoresSafeArea()
+            } else if experiment.resolvedMechanic == "strobe_touch" && strobeScreenFlash {
                 Color.white.ignoresSafeArea()
-            } else if experiment.resolvedMechanic == "red_light_green_light" && isRedLightActive {
-                Color.red.opacity(0.85).ignoresSafeArea()
             } else {
-                Color.black.opacity(0.95).ignoresSafeArea()
+                Color.black.opacity(0.96).ignoresSafeArea()
             }
 
             VStack(spacing: 20) {
                 // Шапка
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(experiment.requiredHardware.uppercased())
-                            .font(.system(size: 11, weight: .black, design: .monospaced))
-                            .foregroundColor(experiment.accentColor)
-                            .tracking(2)
-                        Text(experiment.title)
-                            .font(.system(size: 19, weight: .bold))
-                            .foregroundColor(.white)
-                    }
-                    Spacer()
-                    Button {
-                        stopAllEngines()
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 28))
-                            .foregroundColor(.white.opacity(0.4))
-                    }
-                }
-                .padding(.horizontal, 22)
-                .padding(.top, 24)
+                headerBar
+                    .padding(.horizontal, 22)
+                    .padding(.top, 24)
 
                 Spacer()
 
-                // Центральный иллюминатор
-                centralIlluminatorView
+                // Центральная игровая зона
+                arenaView
 
                 Spacer()
 
-                // Нижний блок статуса
-                footerView
+                // Нижний HUD
+                bottomHudView
                     .padding(.horizontal, 20)
 
                 Spacer()
@@ -80,253 +75,425 @@ public struct ExperimentExecutionView: View {
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { _ in
-                    if experiment.resolvedMechanic == "strobe_touch" && !isFinished && !hasFailed {
-                        touchHits += 1
-                        sensor.triggerClick()
-                    }
+                    handleScreenTap()
                 }
         )
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                startSelectedFlow()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                startGameplay()
             }
         }
         .onDisappear {
-            stopAllEngines()
+            stopEngines()
         }
     }
 
-    // MARK: - Центральный Liquid Glass иллюминатор
-    @ViewBuilder
-    private var centralIlluminatorView: some View {
-        VStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .stroke(experiment.accentColor.opacity(0.3), lineWidth: 3)
-                    .frame(width: 140, height: 140)
-
-                switch experiment.resolvedMechanic {
-                case "nitro_freeze":
-                    Text(hasFailed ? "💥" : "🧪")
-                        .font(.system(size: 64))
-                        .scaleEffect(hasFailed ? 1.3 : 1.0)
-                case "red_light_green_light":
-                    Text(isRedLightActive ? "🛑" : "🟢")
-                        .font(.system(size: 68))
-                case "core_balance":
-                    Circle()
-                        .fill(isCoreInZone ? LabTheme.toxicGreen : LabTheme.alertRed)
-                        .frame(width: 28, height: 28)
-                        .offset(x: CGFloat(motion.roll * 120.0), y: CGFloat(motion.pitch * 120.0))
-                case "proximity_facepalm":
-                    Text(proximityEngaged ? "🧠" : "🤦‍♂️")
-                        .font(.system(size: 64))
-                case "strobe_touch":
-                    Text("🖐️")
-                        .font(.system(size: 64))
-                        .scaleEffect(max(0.85, 1.0 - CGFloat(touchHits) * 0.015))
-                case "shake_gforce":
-                    Text("⚡")
-                        .font(.system(size: 64))
-                        .rotationEffect(.degrees(motion.currentGForce * 22.0))
-                default:
-                    Text(experiment.emoji)
-                        .font(.system(size: 64))
-                        .overlay(
-                            Circle()
-                                .stroke(experiment.accentColor.opacity(Double(sensor.currentDecibels) / 100.0), lineWidth: 4)
-                                .scaleEffect(1.0 + CGFloat(sensor.currentDecibels) / 240.0)
-                        )
-                }
+    private var headerBar: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(hudSubtitle.uppercased())
+                    .font(.system(size: 11, weight: .black, design: .monospaced))
+                    .foregroundColor(isRedPhase ? .white : experiment.accentColor)
+                    .tracking(2)
+                Text(experiment.title)
+                    .font(.system(size: 19, weight: .bold))
+                    .foregroundColor(.white)
             }
-            .frame(width: 140, height: 140)
-            .liquidGlass(cornerRadius: 70, borderOpacity: 0.35)
-
-            // Текстовая метрика датчика
-            sensorMetricLabel
+            Spacer()
+            Button {
+                stopEngines()
+                dismiss()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 28))
+                    .foregroundColor(.white.opacity(0.4))
+            }
         }
     }
 
-    private var isCoreInZone: Bool {
-        let dist = sqrt(pow(motion.roll * 120.0, 2) + pow(motion.pitch * 120.0, 2))
-        return dist < 50.0
-    }
-
-    @ViewBuilder
-    private var sensorMetricLabel: some View {
+    private var hudSubtitle: String {
+        if hasFailed { return "💀 ФАТАЛЬНЫЙ СБОЙ" }
+        if isFinished { return "🏆 ИСПЫТАНИЕ ПРОЙДЕНО" }
         switch experiment.resolvedMechanic {
-        case "nitro_freeze":
-            Text(hasFailed ? "ВЗРЫВ ОТ ДРОЖИ!" : "НЕ ДЫШАТЬ И НЕ ДВИГАТЬСЯ!")
-                .font(.system(size: 14, weight: .black, design: .monospaced))
-                .foregroundColor(hasFailed ? LabTheme.alertRed : LabTheme.toxicGreen)
-        case "red_light_green_light":
-            Text(isRedLightActive ? "СТОЯТЬ!" : "ТРЯСИ ТЕЛЕФОН!")
-                .font(.system(size: 16, weight: .black, design: .monospaced))
-                .foregroundColor(isRedLightActive ? LabTheme.alertRed : LabTheme.toxicGreen)
-        case "core_balance":
-            Text(isCoreInZone ? "ЯДРО СТАБИЛЬНО" : "УГРОЗА ВЗРЫВА!")
-                .font(.system(size: 14, weight: .black, design: .monospaced))
-                .foregroundColor(isCoreInZone ? LabTheme.toxicGreen : LabTheme.alertRed)
-        case "proximity_facepalm":
-            Text(proximityEngaged ? "КОНТАКТ УСТАНОВЛЕН" : "ПРИЖМИ К ТЕЛУ/ЛБУ")
-                .font(.system(size: 14, weight: .black, design: .monospaced))
-                .foregroundColor(proximityEngaged ? LabTheme.toxicGreen : LabTheme.hazardOrange)
-        case "strobe_touch":
-            Text("УДАРОВ: \(touchHits)")
-                .font(.system(size: 16, weight: .black, design: .monospaced))
-                .foregroundColor(touchHits >= 25 ? LabTheme.toxicGreen : LabTheme.hazardOrange)
-        case "shake_gforce":
-            Text("ПЕРЕГРУЗКА: \(String(format: "%.1f", motion.currentGForce)) G")
-                .font(.system(size: 16, weight: .black, design: .monospaced))
-                .foregroundColor(motion.currentGForce > 3.0 ? LabTheme.alertRed : LabTheme.hazardOrange)
-        default:
-            Text("ШУМ: \(Int(sensor.currentDecibels)) дБ")
-                .font(.system(size: 16, weight: .black, design: .monospaced))
-                .foregroundColor(sensor.currentDecibels > 85 ? LabTheme.alertRed : LabTheme.cyanBeam)
+        case "nitro_freeze": return "🧪 НЕ ДЫШАТЬ И НЕ ДВИГАТЬСЯ"
+        case "red_light_green_light": return isRedPhase ? "🛑 ЗАМРИ НАХУЙ!" : "🟢 ТРЯСИ СО ВСЕЙ ДУРИ!"
+        case "core_balance": return "☢️ УДЕРЖИВАЙ ЯДРО В ПРИЦЕЛЕ"
+        case "strobe_touch": return "🔨 ДОЛБИ ДВУМЯ ПАЛЬЦАМИ!"
+        case "proximity_facepalm": return "🧠 ПРИЖМИ К ТЕЛУ ИЛИ ЛБУ"
+        default: return "🎯 ДЕРЖИ ЗВУК В ЗЕЛЕНОЙ ЗОНЕ"
         }
     }
 
-    // MARK: - Нижняя плашка
-    private var footerView: some View {
-        VStack(spacing: 8) {
-            if !isFinished {
-                Text("ДО ВЗРЫВА: \(timeRemaining) СЕК")
-                    .font(.system(size: 17, weight: .heavy, design: .monospaced))
-                    .foregroundColor(timeRemaining <= 2 ? LabTheme.alertRed : .white)
+    @ViewBuilder
+    private var arenaView: some View {
+        ZStack {
+            Circle()
+                .stroke(isRedPhase ? Color.white : experiment.accentColor.opacity(0.35), lineWidth: 3)
+                .frame(width: 170, height: 170)
 
-                Text(experiment.description)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.white.opacity(0.7))
-                    .multilineTextAlignment(.center)
-            } else {
+            switch experiment.resolvedMechanic {
+            case "nitro_freeze":
+                nitroView
+            case "red_light_green_light":
+                trafficView
+            case "core_balance":
+                physicsCoreView
+            case "strobe_touch":
+                strobeTapView
+            case "proximity_facepalm":
+                proximityFaceView
+            default:
+                audioCorridorView
+            }
+        }
+        .frame(width: 170, height: 170)
+        .liquidGlass(cornerRadius: 85, borderOpacity: 0.35)
+    }
+
+    private var nitroView: some View {
+        VStack(spacing: 8) {
+            Text(hasFailed ? "💥" : "🧪")
+                .font(.system(size: 64))
+                .scaleEffect(hasFailed ? 1.4 : 1.0)
+            if !hasFailed && !isFinished {
+                Text("\(Int(gameProgress * 100))%")
+                    .font(.system(size: 14, weight: .black, design: .monospaced))
+                    .foregroundColor(LabTheme.toxicGreen)
+            }
+        }
+    }
+
+    private var trafficView: some View {
+        VStack(spacing: 6) {
+            Text(isRedPhase ? "🛑" : "🟢")
+                .font(.system(size: 68))
+                .scaleEffect(isRedPhase ? 1.15 : 1.0)
+            Text(isRedPhase ? "СТОЙ!" : "ТРЯСИ!")
+                .font(.system(size: 14, weight: .black, design: .monospaced))
+                .foregroundColor(.white)
+        }
+    }
+
+    private var physicsCoreView: some View {
+        ZStack {
+            Circle()
+                .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                .frame(width: 120, height: 120)
+
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [LabTheme.cyanBeam, LabTheme.toxicGreen],
+                        center: .center,
+                        startRadius: 2,
+                        endRadius: 14
+                    )
+                )
+                .frame(width: 26, height: 26)
+                .shadow(color: LabTheme.cyanBeam, radius: 10)
+                .offset(x: ballPosition.x, y: ballPosition.y)
+        }
+    }
+
+    private var strobeTapView: some View {
+        VStack(spacing: 6) {
+            Text("🖐️")
+                .font(.system(size: 58))
+                .scaleEffect(max(0.85, 1.0 - CGFloat(tapHits) * 0.005))
+            Text("\(tapHits) ТАПОВ")
+                .font(.system(size: 15, weight: .black, design: .monospaced))
+                .foregroundColor(LabTheme.toxicGreen)
+        }
+    }
+
+    private var proximityFaceView: some View {
+        VStack(spacing: 6) {
+            Text(UIDevice.current.proximityState ? "🧠" : "🤦‍♂️")
+                .font(.system(size: 62))
+            Text(UIDevice.current.proximityState ? "ОХЛАЖДЕНИЕ..." : "ПРИЖМИ К ЛБУ!")
+                .font(.system(size: 11, weight: .black, design: .monospaced))
+                .foregroundColor(UIDevice.current.proximityState ? LabTheme.toxicGreen : LabTheme.hazardOrange)
+        }
+    }
+
+    private var audioCorridorView: some View {
+        VStack(spacing: 8) {
+            Text(experiment.emoji)
+                .font(.system(size: 56))
+                .scaleEffect(1.0 + CGFloat(sensor.currentDecibels) / 260.0)
+
+            Text("\(Int(sensor.currentDecibels)) дБ")
+                .font(.system(size: 15, weight: .black, design: .monospaced))
+                .foregroundColor(isAudioInTargetRange ? LabTheme.toxicGreen : LabTheme.hazardOrange)
+        }
+    }
+
+    private var isAudioInTargetRange: Bool {
+        sensor.currentDecibels >= 60 && sensor.currentDecibels <= 80
+    }
+
+    private var bottomHudView: some View {
+        VStack(spacing: 12) {
+            if hasFailed {
                 VStack(spacing: 4) {
-                    Text(hasFailed ? "💥 ПРОВАЛ!" : "🎉 ОПЫТ СДАН!")
-                        .font(.system(size: 18, weight: .black))
-                        .foregroundColor(hasFailed ? LabTheme.alertRed : LabTheme.toxicGreen)
-                    Text("Занесено в журнал катастроф")
+                    Text("💥 ПРОВАЛ!")
+                        .font(.system(size: 20, weight: .black))
+                        .foregroundColor(LabTheme.alertRed)
+                    Text(failureReason)
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(.white.opacity(0.85))
+                        .multilineTextAlignment(.center)
+                }
+            } else if isFinished {
+                VStack(spacing: 4) {
+                    Text("🎉 ТЕСТ ВЫПОЛНЕН!")
+                        .font(.system(size: 20, weight: .black))
+                        .foregroundColor(LabTheme.toxicGreen)
+                    Text("Железо выжило. Результат внесён в архив катастроф.")
                         .font(.system(size: 12))
-                        .foregroundColor(.white.opacity(0.7))
+                        .foregroundColor(.white.opacity(0.75))
+                }
+            } else {
+                VStack(spacing: 8) {
+                    HStack {
+                        Text("ПРОГРЕСС РАЗГОНА")
+                            .font(.system(size: 10, weight: .black, design: .monospaced))
+                            .foregroundColor(.white.opacity(0.6))
+                        Spacer()
+                        Text("\(Int(gameProgress * 100))%")
+                            .font(.system(size: 12, weight: .black, design: .monospaced))
+                            .foregroundColor(LabTheme.cyanBeam)
+                    }
+
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(Color.white.opacity(0.12))
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [LabTheme.cyanBeam, LabTheme.toxicGreen],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .frame(width: geo.size.width * CGFloat(min(1.0, max(0.02, gameProgress))))
+                        }
+                    }
+                    .frame(height: 10)
+
+                    Text(instructionText)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.white.opacity(0.65))
+                        .multilineTextAlignment(.center)
                 }
             }
         }
-        .padding(16)
+        .padding(18)
         .frame(maxWidth: .infinity)
         .liquidGlass(cornerRadius: 22, borderOpacity: 0.3)
     }
 
-    // MARK: - Логика
-    private func startSelectedFlow() {
-        timeRemaining = 6
+    private var instructionText: String {
+        switch experiment.resolvedMechanic {
+        case "nitro_freeze": return "Держи телефон абсолютно неподвижно и тихо 5 секунд"
+        case "red_light_green_light": return "Тряси на зелёный свет! При смене на красный — мгновенно замри!"
+        case "core_balance": return "Наклоняй корпус телефона, удерживай шар ближе к центру"
+        case "strobe_touch": return "Тапай двумя пальцами как из пулемёта, опережай падение шкалы!"
+        case "proximity_facepalm": return "Держи экран плотно прижатым ко лбу или руке"
+        default: return "Гуди или говори в микрофон ровно в диапазоне 60-80 дБ"
+        }
+    }
+
+    private func handleScreenTap() {
+        guard !isFinished && !hasFailed else { return }
+        if experiment.resolvedMechanic == "strobe_touch" {
+            tapHits += 1
+            gameProgress = min(1.0, gameProgress + 0.038)
+            sensor.triggerClick()
+            if gameProgress >= 1.0 {
+                completeGame(success: true)
+            }
+        }
+    }
+
+    private func startGameplay() {
         isFinished = false
         hasFailed = false
-        peakScore = 0.0
-        sustainSeconds = 0.0
-        touchHits = 0
+        failureReason = ""
+        gameProgress = 0.0
+        totalTimeElapsed = 0.0
+        ballPosition = .zero
+        ballVelocity = .zero
+        tapHits = 0
+        proximityContactSeconds = 0.0
 
         switch experiment.resolvedMechanic {
         case "nitro_freeze":
-            personality.say("Нитроглицерин! Замри, блять, и не дыши!", emotion: .whisper)
+            personality.say("Нитроглицерин! Замри, блять, и не дыши вообще!", emotion: .whisper)
             sensor.startAudioMetering()
             motion.startTracking()
         case "red_light_green_light":
-            personality.say("Тряси только на зелёный! На красный — стоп!", emotion: .aggressive)
+            isRedPhase = false
+            nextPhaseSwitch = 1.6
+            personality.say("Зелёный свет! Тряси со всей дури!", emotion: .aggressive)
             motion.startTracking()
         case "core_balance":
-            personality.say("Удерживай ядро реактора в центре!", emotion: .panic)
+            personality.say("Удерживай ядро реактора! Наклоняй телефон и держи центр!", emotion: .panic)
             motion.startTracking()
-        case "proximity_facepalm":
-            personality.say("Приложи дисплей ко лбу, охлаждаем процессор!", emotion: .mocking)
-            UIDevice.current.isProximityMonitoringEnabled = true
-            NotificationCenter.default.addObserver(forName: UIDevice.proximityStateDidChangeNotification, object: nil, queue: .main) { _ in
-                proximityEngaged = UIDevice.current.proximityState
-                if proximityEngaged { sensor.triggerClick() }
-            }
         case "strobe_touch":
-            personality.say("Вспышка стробит! Долби по экрану!", emotion: .aggressive)
-            strobe.startStrobe(interval: 0.08)
-        case "shake_gforce":
-            personality.say("Тряси телефон со всей дури!", emotion: .panic)
-            motion.startTracking { g in
-                if g > peakScore { peakScore = g }
-                sensor.triggerClick()
-            }
+            personality.say("Вспышка стробит! Долби по экрану двумя пальцами!", emotion: .aggressive)
+            strobe.startStrobe(interval: 0.07)
+        case "proximity_facepalm":
+            personality.say("Приложи экран ко лбу! Охлаждаем твои две извилины!", emotion: .mocking)
+            UIDevice.current.isProximityMonitoringEnabled = true
         default:
-            personality.say("Заори в микрофон так, чтоб уши заложило!", emotion: .aggressive)
-            sensor.startAudioMetering { peak in
-                if Double(peak) > peakScore { peakScore = Double(peak) }
-                sensor.triggerClick()
-            }
+            personality.say("Держи звук строго в зеленом секторе! Не переори!", emotion: .aggressive)
+            sensor.startAudioMetering()
         }
 
-        runTimer?.invalidate()
-        runTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+        gameLoopTimer?.invalidate()
+        gameLoopTimer = Timer.scheduledTimer(withTimeInterval: 0.033, repeats: true) { _ in
             guard !isFinished && !hasFailed else { return }
-            self.tickChecks()
-        }
-
-        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
-            if self.isFinished || self.hasFailed {
-                t.invalidate()
-                return
-            }
-            if self.timeRemaining > 1 {
-                self.timeRemaining -= 1
-            } else {
-                t.invalidate()
-                self.finishFlow(failed: false)
-            }
+            self.tickSimulation(dt: 0.033)
         }
     }
 
-    private func tickChecks() {
+    private func tickSimulation(dt: Double) {
+        totalTimeElapsed += dt
+
         switch experiment.resolvedMechanic {
         case "nitro_freeze":
-            if motion.currentGForce > 1.35 || sensor.currentDecibels > 68 {
-                finishFlow(failed: true)
+            if motion.currentGForce > 1.18 {
+                failGame(reason: "Руки трясутся! Ты взорвал колбу нитроглицерина.")
+                return
             }
+            if sensor.currentDecibels > 62 {
+                failGame(reason: "Ты слишком громко сопел! Взрыв от акустического хлопка.")
+                return
+            }
+            gameProgress += dt / 5.0
+            if gameProgress >= 1.0 {
+                completeGame(success: true)
+            }
+
         case "red_light_green_light":
-            if timeRemaining == 4 || timeRemaining == 2 {
-                isRedLightActive = true
+            if totalTimeElapsed >= nextPhaseSwitch {
+                isRedPhase.toggle()
+                totalTimeElapsed = 0.0
+                nextPhaseSwitch = isRedPhase ? Double.random(in: 1.4...2.2) : Double.random(in: 1.8...2.8)
+                sensor.triggerClick()
+                if isRedPhase {
+                    personality.say("СТОЯТЬ, СУКА!", emotion: .aggressive)
+                }
+            }
+
+            if isRedPhase {
+                if motion.currentGForce > 1.14 {
+                    failGame(reason: "РАЗРЫВ СЕРДЦА! Ты пошевелился на красный свет.")
+                    return
+                }
             } else {
-                isRedLightActive = false
+                if motion.currentGForce > 1.4 {
+                    gameProgress += (motion.currentGForce - 1.0) * 0.012
+                }
             }
-            if isRedLightActive && motion.currentGForce > 1.4 {
-                finishFlow(failed: true)
+
+            if gameProgress >= 1.0 {
+                completeGame(success: true)
             }
+
+        case "core_balance":
+            let ax = motion.roll * 420.0
+            let ay = motion.pitch * 420.0
+            ballVelocity.x = (ballVelocity.x + ax * dt) * 0.94
+            ballVelocity.y = (ballVelocity.y + ay * dt) * 0.94
+            ballPosition.x += ballVelocity.x * dt
+            ballPosition.y += ballVelocity.y * dt
+
+            let dist = sqrt(pow(ballPosition.x, 2) + pow(ballPosition.y, 2))
+            if dist > 68.0 {
+                failGame(reason: "Разгерметизация! Шар вылетел за пределы магнитной ловушки.")
+                return
+            }
+
+            if dist < 40.0 {
+                gameProgress += dt / 6.0
+            } else {
+                gameProgress = max(0.0, gameProgress - dt * 0.1)
+            }
+
+            if gameProgress >= 1.0 {
+                completeGame(success: true)
+            }
+
         case "strobe_touch":
-            strobeFlash.toggle()
+            strobeScreenFlash.toggle()
+            gameProgress = max(0.0, gameProgress - dt * 0.14)
+
+        case "proximity_facepalm":
+            if UIDevice.current.proximityState {
+                proximityContactSeconds += dt
+                gameProgress = min(1.0, proximityContactSeconds / 3.0)
+                if gameProgress >= 1.0 {
+                    completeGame(success: true)
+                }
+            } else {
+                if proximityContactSeconds > 0.3 {
+                    failGame(reason: "Рано оторвал от лба! Контакт прерван, мозг не охладился.")
+                    return
+                }
+            }
+
         default:
-            break
+            if isAudioInTargetRange {
+                gameProgress += dt / 4.0
+            } else if sensor.currentDecibels > 82 {
+                failGame(reason: "Слишком громко! Мембрана микрофона раскалилась и треснула.")
+                return
+            } else {
+                gameProgress = max(0.0, gameProgress - dt * 0.1)
+            }
+
+            if gameProgress >= 1.0 {
+                completeGame(success: true)
+            }
         }
     }
 
-    private func finishFlow(failed: Bool) {
+    private func failGame(reason: String) {
+        hasFailed = true
         isFinished = true
-        hasFailed = failed
-        stopAllEngines()
+        failureReason = reason
+        stopEngines()
+        sensor.triggerExplosionHaptics()
+        personality.say(reason, emotion: .aggressive)
+    }
+
+    private func completeGame(success: Bool) {
+        isFinished = true
+        hasFailed = false
+        gameProgress = 1.0
+        stopEngines()
         sensor.triggerExplosionHaptics()
 
         history.recordDisaster(
             title: experiment.title,
             emoji: experiment.emoji,
-            peakDecibels: Float(peakScore),
+            peakDecibels: Float(sensor.currentDecibels),
             hardware: experiment.requiredHardware
         )
 
-        if failed {
-            personality.say("Провал! Руки из одного места растут.", emotion: .aggressive)
-        } else {
-            personality.say("Опыт сдан! Железо чудом уцелело.", emotion: .mocking)
-        }
+        personality.say("Опыт сдан! Железо чудом уцелело под твоими руками.", emotion: .mocking)
     }
 
-    private func stopAllEngines() {
-        runTimer?.invalidate()
-        runTimer = nil
+    private func stopEngines() {
+        gameLoopTimer?.invalidate()
+        gameLoopTimer = nil
         sensor.stopAudioMetering()
         motion.stopTracking()
         strobe.stopStrobe()
-        strobeFlash = false
+        strobeScreenFlash = false
         UIDevice.current.isProximityMonitoringEnabled = false
     }
 }

@@ -2,26 +2,26 @@ import SwiftUI
 
 public struct HomeView: View {
     private let personality = PersonalityEngine.shared
-    private let museum = MuseumManager.shared
     @State private var activeExperiment: ExperimentItem?
     @State private var showSettings: Bool = false
 
     private let dailyExperiment = ExperimentItem(
-        id: "daily_nitro",
+        id: "exp_nitro",
         title: "Капля нитроглицерина",
-        subtitle: "Замри и не дыши 6 секунд",
+        subtitle: "Замри и не дыши 5 секунд",
         emoji: "🧪",
-        requiredHardware: "Акселерометр",
+        requiredHardware: "Акселерометр + Микрофон",
         accentColor: LabTheme.alertRed,
-        dangerLevel: 4,
+        dangerLevel: 5,
         mechanic: "nitro_freeze"
     )
 
-    private let freshExperiments: [ExperimentItem] = [
-        ExperimentItem(id: "exp_03", title: "Удержи ядро реактора", subtitle: "Баланс гироскопа", emoji: "☢️", requiredHardware: "Гироскоп", accentColor: LabTheme.cyanBeam, dangerLevel: 5, mechanic: "core_balance"),
-        ExperimentItem(id: "exp_02", title: "Красный / Зелёный свет", subtitle: "Реакция на импульс", emoji: "🚦", requiredHardware: "Акселерометр", accentColor: LabTheme.toxicGreen, dangerLevel: 3, mechanic: "red_light_green_light"),
-        ExperimentItem(id: "exp_05", title: "Стробоскоп-пулемёт", subtitle: "Тапы под вспышку", emoji: "🔦", requiredHardware: "Вспышка + Дисплей", accentColor: LabTheme.hazardOrange, dangerLevel: 4, mechanic: "strobe_touch"),
-        ExperimentItem(id: "exp_04", title: "Экстренный фэйспалм", subtitle: "Тест у лба", emoji: "🤦‍♂️", requiredHardware: "Датчик приближения", accentColor: LabTheme.cyanBeam, dangerLevel: 2, mechanic: "proximity_facepalm")
+    private let operationalExperiments: [ExperimentItem] = [
+        ExperimentItem(id: "exp_core", title: "Удержи ядро реактора", subtitle: "Баланс гироскопа", emoji: "☢️", requiredHardware: "Гироскоп", accentColor: LabTheme.cyanBeam, dangerLevel: 5, mechanic: "core_balance"),
+        ExperimentItem(id: "exp_traffic", title: "Красный / Зелёный свет", subtitle: "Тряска и мгновенный стоп", emoji: "🚦", requiredHardware: "Акселерометр", accentColor: LabTheme.toxicGreen, dangerLevel: 4, mechanic: "red_light_green_light"),
+        ExperimentItem(id: "exp_strobe_tap", title: "Тап-пулемёт", subtitle: "Тапы под стробоскоп", emoji: "🔨", requiredHardware: "Вспышка + Дисплей", accentColor: LabTheme.alertRed, dangerLevel: 4, mechanic: "strobe_touch"),
+        ExperimentItem(id: "exp_audio_target", title: "Голосовой тир", subtitle: "Коридор 60-80 дБ", emoji: "🎯", requiredHardware: "Микрофон", accentColor: LabTheme.hazardOrange, dangerLevel: 3, mechanic: "audio_scream"),
+        ExperimentItem(id: "exp_facepalm", title: "Экстренный фэйспалм", subtitle: "Тест у лба", emoji: "🤦‍♂️", requiredHardware: "Датчик приближения", accentColor: LabTheme.cyanBeam, dangerLevel: 2, mechanic: "proximity_facepalm")
     ]
 
     public init() {}
@@ -37,7 +37,7 @@ public struct HomeView: View {
 
                     dailyExperimentSection
 
-                    freshExperimentsSection
+                    operationalSection
 
                     Spacer().frame(height: 100)
                 }
@@ -143,7 +143,7 @@ public struct HomeView: View {
         }
     }
 
-    private var freshExperimentsSection: some View {
+    private var operationalSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("⚡ ОПЕРАТИВНЫЕ ТЕСТЫ")
                 .font(.system(size: 11, weight: .black, design: .monospaced))
@@ -151,7 +151,7 @@ public struct HomeView: View {
                 .tracking(2)
 
             VStack(spacing: 10) {
-                ForEach(freshExperiments, id: \.id) { item in
+                ForEach(operationalExperiments, id: \.id) { item in
                     Button {
                         activeExperiment = item
                     } label: {
