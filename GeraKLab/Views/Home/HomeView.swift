@@ -2,8 +2,8 @@ import SwiftUI
 
 public struct HomeView: View {
     private let personality = PersonalityEngine.shared
+    @State private var showSettings: Bool = false
 
-    // Моковые данные для витрины
     private let dailyExperiment = ExperimentItem(
         id: "daily_overclock",
         title: "Разгон процессора через микрофон",
@@ -48,15 +48,16 @@ public struct HomeView: View {
                 // 👀 Ты ещё не пробовал
                 untriedSection
 
-                // Запас снизу, чтобы контент не перекрывался плавающим баром
-                Spacer()
-                    .frame(height: 110)
+                Spacer().frame(height: 110)
             }
             .padding(.horizontal, 20)
             .padding(.top, 54)
         }
         .onTapGesture {
             personality.userDidInteract()
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
         }
     }
 
@@ -72,18 +73,18 @@ public struct HomeView: View {
                 Spacer()
 
                 Button {
-                    personality.say("Че вылупился? Настройки пока не готовы, тыкай опыты!", emotion: .aggressive)
+                    personality.userDidInteract()
+                    showSettings = true
                 } label: {
                     Image(systemName: "gearshape.fill")
                         .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.white.opacity(0.7))
+                        .foregroundColor(.white.opacity(0.85))
                         .padding(10)
                         .background(.ultraThinMaterial)
                         .clipShape(Circle())
                 }
             }
 
-            // Динамическая строка возможностей устройства
             Text("42 из 54 возможностей доступно")
                 .font(.system(size: 13, weight: .semibold, design: .rounded))
                 .foregroundColor(LabTheme.toxicGreen.opacity(0.85))
