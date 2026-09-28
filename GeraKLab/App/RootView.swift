@@ -20,9 +20,7 @@ public struct RootView: View {
                 case .random:
                     Color.clear
                 case .favorites:
-                    Text("⭐ Золотая коллекция грехов")
-                        .font(.title2.bold())
-                        .foregroundColor(.white)
+                    FavoritesView()
                 case .history:
                     Text("🕘 Журнал катастроф и позора")
                         .font(.title2.bold())
