@@ -5,13 +5,14 @@ public struct CustomLiquidTabBar: View {
     @State private var diceRotation: Double = 0
     @State private var diceScale: CGFloat = 1.0
 
+    private let personality = PersonalityEngine.shared
+
     public init(selectedTab: Binding<TabItem>) {
         self._selectedTab = selectedTab
     }
 
     public var body: some View {
         ZStack(alignment: .top) {
-            // Монолитная подложка жидкого стекла с выступом
             LiquidGlassTabBarShape()
                 .fill(.ultraThinMaterial)
                 .background(
@@ -36,12 +37,10 @@ public struct CustomLiquidTabBar: View {
                 .shadow(color: Color.black.opacity(0.45), radius: 24, x: 0, y: 12)
                 .frame(height: 68)
 
-            // Кнопки навигации
             HStack(spacing: 0) {
                 tabButton(for: .home)
                 tabButton(for: .lab)
 
-                // Центральная кость 🎲, сидящая прямо в куполе
                 centerDiceButton()
                     .offset(y: -24)
 
@@ -54,10 +53,10 @@ public struct CustomLiquidTabBar: View {
         .padding(.bottom, 12)
     }
 
-    // Обычная кнопка вкладки
     @ViewBuilder
     private func tabButton(for item: TabItem) -> some View {
         Button {
+            personality.userDidInteract()
             withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
                 selectedTab = item
             }
@@ -78,11 +77,12 @@ public struct CustomLiquidTabBar: View {
         .buttonStyle(.plain)
     }
 
-    // Триггер случайного события (Кость 🎲)
     @ViewBuilder
     private func centerDiceButton() -> some View {
         Button {
-            // Эффект удара по кубику с вибро и кувырком
+            // Дергаем панику и истерику персонажа
+            personality.triggerDicePanic()
+
             withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
                 diceRotation += 360
                 diceScale = 0.85
