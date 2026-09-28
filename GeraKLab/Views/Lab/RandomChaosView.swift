@@ -2,8 +2,8 @@ import SwiftUI
 
 public struct RandomChaosView: View {
     @Binding public var isPresented: Bool
+    public var onLaunchChaosExperiment: (ExperimentItem) -> Void
 
-    // Состояния барабанов
     @State private var objectIndex: Int = 0
     @State private var actionIndex: Int = 0
     @State private var conditionIndex: Int = 0
@@ -11,11 +11,9 @@ public struct RandomChaosView: View {
     @State private var isSpinning: Bool = true
     @State private var countdown: Int = 3
     @State private var isCountdownActive: Bool = false
-    @State private var isExecuting: Bool = false
 
     private let personality = PersonalityEngine.shared
 
-    // Списки для барабанов
     private let objects = [
         ("🎙️", "Микрофон"),
         ("⚡", "Гироскоп"),
@@ -40,15 +38,17 @@ public struct RandomChaosView: View {
         "Шепчи оскорбления прямо в ухо"
     ]
 
-    public init(isPresented: Binding<Bool>) {
+    public init(
+        isPresented: Binding<Bool>,
+        onLaunchChaosExperiment: @escaping (ExperimentItem) -> Void = { _ in }
+    ) {
         self._isPresented = isPresented
+        self.onLaunchChaosExperiment = onLaunchChaosExperiment
     }
 
     public var body: some View {
         ZStack {
-            // Тревожный красный бэкграунд с перегрузкой
-            Color.black.opacity(0.85)
-                .ignoresSafeArea()
+            Color.black.opacity(0.88).ignoresSafeArea()
 
             VStack(spacing: 24) {
                 // Шапка тревоги
@@ -66,7 +66,6 @@ public struct RandomChaosView: View {
 
                     Spacer()
 
-                    // Без кнопки закрытия во время крутки/таймера!
                     if !isSpinning && !isCountdownActive {
                         Button {
                             personality.say("Слился, лаборант? Ну и вали на главную!", emotion: .mocking)
@@ -85,21 +84,18 @@ public struct RandomChaosView: View {
 
                 // Слот-машина: 3 стеклянных барабана
                 VStack(spacing: 14) {
-                    // Барабан 1: Объект
                     slotCard(
                         title: "ДАТЧИК / ЖЕЛЕЗО",
                         content: "\(objects[objectIndex].0) \(objects[objectIndex].1)",
                         color: LabTheme.cyanBeam
                     )
 
-                    // Барабан 2: Действие
                     slotCard(
                         title: "ДЕЙСТВИЕ",
                         content: actions[actionIndex],
                         color: LabTheme.hazardOrange
                     )
 
-                    // Барабан 3: Условие
                     slotCard(
                         title: "УСЛОВИЕ РАЗЪЁБА",
                         content: conditions[conditionIndex],
@@ -110,31 +106,26 @@ public struct RandomChaosView: View {
 
                 Spacer()
 
-                // Блок обратного отсчета или запуска
-                VStack(spacing: 12) {
+                // Блок отсчёта
+                VStack(spacing: 8) {
                     if isCountdownActive {
-                        VStack(spacing: 6) {
+                        VStack(spacing: 4) {
                             Text("\(countdown)")
                                 .font(.system(size: 64, weight: .black, design: .monospaced))
                                 .foregroundColor(LabTheme.alertRed)
                                 .scaleEffect(1.2)
-                                .animation(.spring(response: 0.2), value: countdown)
 
                             Text("ПРИГОТОВИТЬСЯ К АВАРИИ!")
                                 .font(.system(size: 13, weight: .heavy))
                                 .foregroundColor(.white)
                         }
-                    } else if isExecuting {
-                        Text("💥 ОПЫТ АКТИВЕН! ДЕЙСТВУЙ!")
-                            .font(.system(size: 16, weight: .black))
-                            .foregroundColor(LabTheme.toxicGreen)
-                    } else {
+                    } else if isSpinning {
                         Text("Синтез цепной реакции...")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.white.opacity(0.5))
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white.opacity(0.6))
                     }
                 }
-                .frame(height: 100)
+                .frame(height: 90)
 
                 Spacer()
             }
@@ -144,7 +135,6 @@ public struct RandomChaosView: View {
         }
     }
 
-    // Карточка барабана
     @ViewBuilder
     private func slotCard(title: String, content: String, color: Color) -> some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -162,13 +152,10 @@ public struct RandomChaosView: View {
         .liquidGlass(cornerRadius: 18, borderOpacity: 0.35)
     }
 
-    // Запуск рулетки с последовательной остановкой
     private func startChaosRoulette() {
         isSpinning = true
         isCountdownActive = false
-        isExecuting = false
 
-        // Быстрая анимация перебора значений
         let timer = Timer.scheduledTimer(withTimeInterval: 0.08, repeats: true) { t in
             if isSpinning {
                 objectIndex = Int.random(in: 0..<objects.count)
@@ -179,28 +166,20 @@ public struct RandomChaosView: View {
             }
         }
 
-        // Фиксация барабанов по очереди
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-            // Барабан 1 зафиксирован
             personality.say("Так, выпало железо... держись крепче!", emotion: .panic)
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
-            // Барабан 2 зафиксирован
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-            // Барабан 3 зафиксирован, крутка окончена
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.8) {
             isSpinning = false
             startCountdown()
         }
     }
 
-    // Таймер 3..2..1..СТАРТ
     private func startCountdown() {
         isCountdownActive = true
         countdown = 3
-        personality.say("Три... два... один... пошла жара, выполняй!", emotion: .aggressive)
+        personality.say("Три... два... один... пошла жара!", emotion: .aggressive)
 
         Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
             if countdown > 1 {
@@ -208,7 +187,18 @@ public struct RandomChaosView: View {
             } else {
                 t.invalidate()
                 isCountdownActive = false
-                isExecuting = true
+
+                let finalExp = ExperimentItem(
+                    id: "chaos_\(UUID().uuidString.prefix(6))",
+                    title: actions[actionIndex],
+                    subtitle: conditions[conditionIndex],
+                    emoji: objects[objectIndex].0,
+                    requiredHardware: objects[objectIndex].1,
+                    accentColor: LabTheme.alertRed
+                )
+
+                isPresented = false
+                onLaunchChaosExperiment(finalExp)
             }
         }
     }

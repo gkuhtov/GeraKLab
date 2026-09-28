@@ -3,6 +3,7 @@ import SwiftUI
 public struct RootView: View {
     @State private var selectedTab: TabItem = .home
     @State private var showRandomChaos: Bool = false
+    @State private var activeChaosExperiment: ExperimentItem?
 
     public init() {}
 
@@ -38,7 +39,14 @@ public struct RootView: View {
             }
         }
         .fullScreenCover(isPresented: $showRandomChaos) {
-            RandomChaosView(isPresented: $showRandomChaos)
+            RandomChaosView(isPresented: $showRandomChaos) { exp in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    activeChaosExperiment = exp
+                }
+            }
+        }
+        .fullScreenCover(item: $activeChaosExperiment) { exp in
+            ExperimentExecutionView(experiment: exp)
         }
     }
 }
