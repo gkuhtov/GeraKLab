@@ -2,13 +2,16 @@ import SwiftUI
 
 public struct CustomLiquidTabBar: View {
     @Binding public var selectedTab: TabItem
+    public var onDiceTriggered: () -> Void
+
     @State private var diceRotation: Double = 0
     @State private var diceScale: CGFloat = 1.0
 
     private let personality = PersonalityEngine.shared
 
-    public init(selectedTab: Binding<TabItem>) {
+    public init(selectedTab: Binding<TabItem>, onDiceTriggered: @escaping () -> Void = {}) {
         self._selectedTab = selectedTab
+        self.onDiceTriggered = onDiceTriggered
     }
 
     public var body: some View {
@@ -80,13 +83,12 @@ public struct CustomLiquidTabBar: View {
     @ViewBuilder
     private func centerDiceButton() -> some View {
         Button {
-            // Дергаем панику и истерику персонажа
             personality.triggerDicePanic()
+            onDiceTriggered()
 
             withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
                 diceRotation += 360
                 diceScale = 0.85
-                selectedTab = .random
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.6)) {

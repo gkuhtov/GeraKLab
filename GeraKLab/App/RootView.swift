@@ -2,6 +2,7 @@ import SwiftUI
 
 public struct RootView: View {
     @State private var selectedTab: TabItem = .home
+    @State private var showRandomChaos: Bool = false
 
     public init() {}
 
@@ -19,9 +20,7 @@ public struct RootView: View {
                         .font(.title2.bold())
                         .foregroundColor(.white)
                 case .random:
-                    Text("🎲 Внезапный пиздец запущен!")
-                        .font(.title2.bold())
-                        .foregroundColor(LabTheme.hazardOrange)
+                    Color.clear
                 case .favorites:
                     Text("⭐ Золотая коллекция грехов")
                         .font(.title2.bold())
@@ -34,10 +33,19 @@ public struct RootView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
+            // Нижняя панель
             VStack {
                 Spacer()
-                CustomLiquidTabBar(selectedTab: $selectedTab)
+                CustomLiquidTabBar(
+                    selectedTab: $selectedTab,
+                    onDiceTriggered: {
+                        showRandomChaos = true
+                    }
+                )
             }
+        }
+        .fullScreenCover(isPresented: $showRandomChaos) {
+            RandomChaosView(isPresented: $showRandomChaos)
         }
     }
 }
