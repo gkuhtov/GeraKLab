@@ -3,6 +3,7 @@ import SwiftUI
 public struct HomeView: View {
     private let personality = PersonalityEngine.shared
     @State private var showSettings: Bool = false
+    @State private var activeExperiment: ExperimentItem?
 
     private let dailyExperiment = ExperimentItem(
         id: "daily_overclock",
@@ -37,7 +38,12 @@ public struct HomeView: View {
                 personalityStatusBubble
 
                 // 🎯 Эксперимент дня
-                dailyExperimentCard
+                Button {
+                    activeExperiment = dailyExperiment
+                } label: {
+                    dailyExperimentCard
+                }
+                .buttonStyle(.plain)
 
                 // 🔥 Быстрые эксперименты
                 quickSection
@@ -58,6 +64,9 @@ public struct HomeView: View {
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
+        }
+        .fullScreenCover(item: $activeExperiment) { item in
+            ExperimentExecutionView(experiment: item)
         }
     }
 
@@ -179,27 +188,32 @@ public struct HomeView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 14) {
                     ForEach(quickExperiments) { item in
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(item.emoji)
-                                .font(.system(size: 28))
-                                .frame(width: 46, height: 46)
-                                .background(.ultraThinMaterial)
-                                .clipShape(Circle())
+                        Button {
+                            activeExperiment = item
+                        } label: {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text(item.emoji)
+                                    .font(.system(size: 28))
+                                    .frame(width: 46, height: 46)
+                                    .background(.ultraThinMaterial)
+                                    .clipShape(Circle())
 
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(item.title)
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .lineLimit(1)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(item.title)
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .lineLimit(1)
 
-                                Text(item.requiredHardware)
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.5))
+                                    Text(item.requiredHardware)
+                                        .font(.system(size: 11, weight: .medium))
+                                        .foregroundColor(.white.opacity(0.5))
+                                }
                             }
+                            .frame(width: 140, alignment: .leading)
+                            .padding(14)
+                            .liquidGlass(cornerRadius: 20, borderOpacity: 0.25)
                         }
-                        .frame(width: 140, alignment: .leading)
-                        .padding(14)
-                        .liquidGlass(cornerRadius: 20, borderOpacity: 0.25)
+                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -216,30 +230,35 @@ public struct HomeView: View {
 
             VStack(spacing: 12) {
                 ForEach(freshExperiments) { item in
-                    HStack(spacing: 14) {
-                        Text(item.emoji)
-                            .font(.system(size: 26))
-                            .frame(width: 48, height: 48)
-                            .background(.ultraThinMaterial)
-                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    Button {
+                        activeExperiment = item
+                    } label: {
+                        HStack(spacing: 14) {
+                            Text(item.emoji)
+                                .font(.system(size: 26))
+                                .frame(width: 48, height: 48)
+                                .background(.ultraThinMaterial)
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(item.title)
-                                .font(.system(size: 15, weight: .bold))
-                                .foregroundColor(.white)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(item.title)
+                                    .font(.system(size: 15, weight: .bold))
+                                    .foregroundColor(.white)
 
-                            Text(item.subtitle)
-                                .font(.system(size: 12, weight: .regular))
-                                .foregroundColor(.white.opacity(0.6))
+                                Text(item.subtitle)
+                                    .font(.system(size: 12, weight: .regular))
+                                    .foregroundColor(.white.opacity(0.6))
+                            }
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.white.opacity(0.3))
                         }
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(.white.opacity(0.3))
+                        .padding(14)
+                        .liquidGlass(cornerRadius: 20, borderOpacity: 0.2)
                     }
-                    .padding(14)
-                    .liquidGlass(cornerRadius: 20, borderOpacity: 0.2)
+                    .buttonStyle(.plain)
                 }
             }
         }
